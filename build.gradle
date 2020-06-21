@@ -1,0 +1,40 @@
+plugins {
+    id 'java'
+}
+
+group 'honeyroasted.occurrence'
+version '0.0.0'
+
+repositories {
+    mavenCentral()
+    jcenter()
+    maven { url 'https://jitpack.io' }
+}
+
+dependencies {
+    implementation(
+            "org.ow2.asm:asm:8.0.1",
+            "org.ow2.asm:asm-commons:8.0.1",
+            "com.github.HoneyRoasted:Pecans:269cc0c77c")
+
+    testImplementation("org.ow2.asm:asm-util:8.0.1")
+}
+
+task fatJar(type: Jar) {
+    from configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    from sourceSets.main.java
+
+    classifier("fat")
+}
+
+task javadocJar(type: Jar) {
+    from javadoc
+
+    classifier("javadoc")
+}
+
+task jars
+jars.dependsOn clean
+jars.dependsOn jar
+jars.dependsOn fatJar
+jars.dependsOn javadocJar
