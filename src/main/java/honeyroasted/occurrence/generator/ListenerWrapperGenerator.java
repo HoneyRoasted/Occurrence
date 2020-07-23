@@ -30,6 +30,7 @@ import java.lang.reflect.Type;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,7 +44,7 @@ public class ListenerWrapperGenerator {
     private static long uniqueSuffix = 0;
 
     public static Collection<ListenerWrapper<?>> genWrappers(Collection<Result> results, ClassLoader loader) {
-        return results.stream().map(r -> {
+        return results.stream().sorted().map(r -> {
             ByteArrayClassLoader byteArrayClassLoader;
             if (loader instanceof ByteArrayClassLoader) {
                 byteArrayClassLoader = (ByteArrayClassLoader) loader;
@@ -116,7 +117,7 @@ public class ListenerWrapperGenerator {
             ClassNode classNode = classDef(ACC_PUBLIC, classSignature(parameterized("Lhoneyroasted/occurrence/generated/" + listenerClass.getSimpleName() + "$" + method.getName() + "$" + System.identityHashCode(listener) + "$" + (uniqueSuffix++) + ";"))
                     .addInterface(type(ListenerWrapper.class).addPart(event.toPecansType())));
 
-            return new Result(classNode, gen(classNode, method, listener, listenerClass, event, visitorRegistry, policyRegistry, staticListener));
+            return new Result(method.getName(), classNode, gen(classNode, method, listener, listenerClass, event, visitorRegistry, policyRegistry, staticListener));
         }
     }
 
@@ -293,13 +294,15 @@ public class ListenerWrapperGenerator {
         return cls.getName() + "#" + method.getName() + "(" + String.join(", ", Stream.of(method.getParameterTypes()).map(Class::getSimpleName).toArray(String[]::new)) + ")$" + System.identityHashCode(owner);
     }
 
-    public static class Result {
+    public static class Result implements Comparable<Result> {
+        private String method;
         private ClassNode classNode;
         private ConstructorParams params;
 
-        public Result(ClassNode classNode, ConstructorParams params) {
+        public Result(String method, ClassNode classNode, ConstructorParams params) {
             this.classNode = classNode;
             this.params = params;
+            this.method = method;
         }
 
         public ClassNode getClassNode() {
@@ -308,6 +311,11 @@ public class ListenerWrapperGenerator {
 
         public ConstructorParams getParams() {
             return params;
+        }
+
+        @Override
+        public int compareTo(Result o) {
+            return this.method.compareTo(o.method);
         }
     }
 

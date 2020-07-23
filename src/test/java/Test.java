@@ -7,6 +7,8 @@ import honeyroasted.occurrence.manager.BakingEventManager;
 import honeyroasted.occurrence.manager.EventManager;
 import honeyroasted.occurrence.manager.SimpleEventManager;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.util.Arrays;
 import java.util.List;
 
@@ -19,29 +21,35 @@ public class Test {
         manager.post("Hello world");
     }
 
+    @Retention(RetentionPolicy.RUNTIME)
+    @Filter(id = "invoke", args = {@Arg(stringVal = "valueOf"), @Arg(name = "source", classVal = String.class)})
+    @Filter(id = "invoke", args = {@Arg(stringVal = "concat"), @Arg(name = "0", delegate = "value")})
+    public @interface MyAnnotation {
+        String value();
+    }
+
     @Listener
-    public void onStr(String val) {
+    public void onStr0(@MyAnnotation("1") String val) {
         System.out.println(val);
     }
 
     @Listener
-    public void onStr1(String val) {
-        System.out.println(val);
-        throw new RuntimeException("Pepega");
-    }
-
-    @Listener
-    public void onStr2(String val) {
+    public void onStr1(@MyAnnotation("2") String val) {
         System.out.println(val);
     }
 
     @Listener
-    public void onStr3(String val) {
+    public void onStr2(@MyAnnotation("3") String val) {
         System.out.println(val);
     }
 
     @Listener
-    public void onStr4(String val) {
+    public void onStr3(@MyAnnotation("4") String val) {
+        System.out.println(val);
+    }
+
+    @Listener
+    public void onStr4(@MyAnnotation("5") String val) {
         System.out.println(val);
     }
 
