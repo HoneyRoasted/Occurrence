@@ -1,6 +1,7 @@
 package honeyroasted.occurrence.generics;
 
 import java.lang.reflect.Array;
+import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -10,6 +11,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 public class ReflectionUtil {
     private static Map<Class, Class> boxByPrimitives = new HashMap<>();
@@ -66,6 +68,12 @@ public class ReflectionUtil {
 
     public static Collection<Class> primitives() {
         return boxByPrimitives.keySet();
+    }
+
+    public static String nameAndSig(Method method) {
+        Class<?> owner = method.getDeclaringClass();
+        return owner.getName() + "#" + method.getName() +
+                "(" + String.join(", ", Stream.of(method.getParameterTypes()).map(Class::getSimpleName).toArray(String[]::new)) + ")";
     }
 
     public static Optional<JavaType> getWithRespect(JavaType sub, Class parent) {

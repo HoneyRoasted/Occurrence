@@ -34,12 +34,20 @@ public class JavaType {
         this.array = array;
     }
 
+    public boolean isPrimitive() {
+        return getEffectiveType().isPrimitive();
+    }
+
     public TypeInformal toPecansType() {
         TypeFill fill = new TypeFill(org.objectweb.asm.Type.getType(getEffectiveType()));
         for (JavaType type : this.generics.getParameters()) {
             fill.addPart(type.toPecansType());
         }
         return fill;
+    }
+
+    public boolean isNumericPrimitive() {
+        return getEffectiveType().isPrimitive() && !getEffectiveType().equals(boolean.class) && !getEffectiveType().equals(void.class);
     }
 
     public JavaType generics(JavaGenerics generics) {

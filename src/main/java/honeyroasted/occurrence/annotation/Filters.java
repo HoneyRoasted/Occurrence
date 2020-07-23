@@ -11,11 +11,44 @@ public @interface Filters {
 
     @Retention(RetentionPolicy.RUNTIME)
     @Filter(id = "invoke", args = {@Arg(delegate = "value"), @Arg(expand = "args")})
-    @interface Invoke { String value() default Filter.DEFAULT; Arg[] args() default {}; }
+    @interface Invoke {
+        String value() default Filter.DEFAULT;
+        Arg[] args() default {};
 
-    @Retention(RetentionPolicy.RUNTIME)
-    @Filter(id = "listener")
-    @interface Listener { }
+
+        @Retention(RetentionPolicy.RUNTIME)
+        @Filter(id = "invoke.predicate", args = {@Arg(delegate = "value"), @Arg(expand = "args")})
+        @interface Predicate {
+            String value() default Filter.DEFAULT;
+            Arg[] args() default {};
+        }
+
+        @Retention(RetentionPolicy.RUNTIME)
+        @Filter(id = "invoke.new", args = {@Arg(delegate = "value"), @Arg(expand = "args")})
+        @interface New {
+            Class<?> value() default Object.class;
+            Arg[] args() default {};
+        }
+    }
+
+    @interface Listener {
+
+        @Retention(RetentionPolicy.RUNTIME)
+        @Filter(id = "listener.invoke", args = {@Arg(delegate = "value"), @Arg(expand = "args")})
+        @interface Invoke {
+            String value() default Filter.DEFAULT;
+            Arg[] args() default {};
+
+
+            @Retention(RetentionPolicy.RUNTIME)
+            @Filter(id = "listener.invoke.predicate", args = {@Arg(delegate = "value"), @Arg(expand = "args")})
+            @interface Predicate {
+                String value() default Filter.DEFAULT;
+                Arg[] args() default {};
+            }
+        }
+
+    }
 
     @Retention(RetentionPolicy.RUNTIME)
     @Filter(id = "include", args = @Arg(delegate = "value"))
@@ -59,15 +92,15 @@ public @interface Filters {
 
         @Retention(RetentionPolicy.RUNTIME)
         @Filter(id = "iterable.first", args = @Arg(delegate = "value"))
-        @interface First { Class value() default Object.class; }
+        @interface First { Class[] value() default Object.class; }
 
         @Retention(RetentionPolicy.RUNTIME)
         @Filter(id = "iterable.last", args = @Arg(delegate = "value"))
-        @interface Last { Class value() default Object.class; }
+        @interface Last { Class[] value() default Object.class; }
 
         @Retention(RetentionPolicy.RUNTIME)
         @Filter(id = "iterable.all", args = @Arg(delegate = "value"))
-        @interface All { Class value() default Object.class; }
+        @interface All { Class[] value() default Object.class; }
 
     }
 
@@ -77,17 +110,17 @@ public @interface Filters {
         @Retention(RetentionPolicy.RUNTIME)
         @Filter(id = "invoke", args = @Arg(stringVal = "values"))
         @Filter(id = "iterable.first", args = @Arg(delegate = "value"))
-        @interface First { Class value() default Object.class; }
+        @interface First { Class[] value() default Object.class; }
 
         @Retention(RetentionPolicy.RUNTIME)
         @Filter(id = "invoke", args = @Arg(stringVal = "values"))
         @Filter(id = "iterable.last", args = @Arg(delegate = "value"))
-        @interface Last { Class value() default Object.class; }
+        @interface Last { Class[] value() default Object.class; }
 
         @Retention(RetentionPolicy.RUNTIME)
         @Filter(id = "invoke", args = @Arg(stringVal = "values"))
         @Filter(id = "iterable.all", args = @Arg(delegate = "value"))
-        @interface All { Class value() default Object.class; }
+        @interface All { Class[] value() default Object.class; }
 
         @Retention(RetentionPolicy.RUNTIME)
         @Filter(id = "invoke", args = {@Arg(stringVal = "get"), @Arg(name = "0", delegate = "value")})

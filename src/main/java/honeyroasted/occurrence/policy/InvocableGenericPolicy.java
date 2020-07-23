@@ -18,6 +18,18 @@ public class InvocableGenericPolicy<T> implements GenericPolicy<T> {
         this.target = target;
     }
 
+    public Object getSource() {
+        return source;
+    }
+
+    public Method getMethod() {
+        return method;
+    }
+
+    public Class<T> getTarget() {
+        return target;
+    }
+
     @Override
     public Class<T> target() {
         return this.target;

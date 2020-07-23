@@ -1,7 +1,8 @@
 package honeyroasted.occurrence.annotation;
 
-import honeyroasted.occurrence.IllegalFilterException;
+import honeyroasted.occurrence.InvalidFilterException;
 import honeyroasted.occurrence.InvokeMethodException;
+import honeyroasted.occurrence.generics.ReflectionUtil;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
@@ -9,19 +10,23 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 public class FilterWrapper {
     private String id;
     private Map<String, Object> values;
+    private Set<String> forceArray;
     private int numIndexed;
 
     public FilterWrapper(Filter filter, Annotation parent) {
         this.id = filter.id();
         this.values = new LinkedHashMap<>();
+        this.forceArray = new HashSet<>();
 
         int counter = 0;
 
@@ -33,19 +38,26 @@ public class FilterWrapper {
                         Arg[] parts = (Arg[]) target.invoke(parent);
 
                         for (Arg part : parts) {
-                            values.put(String.valueOf(counter++), value(part, null));
+                            String key = String.valueOf(counter++);
+                            values.put(key, value(part, null));
+                            if (part.forceArray()) {
+                                forceArray.add(key);
+                            }
                         }
-
                     } catch (NoSuchMethodException e) {
-                        throw new IllegalFilterException("Cannot expand from: " + arg.expand() + ", no such method exists", e);
+                        throw new InvalidFilterException("Cannot expand from: " + arg.expand() + ", no such method exists", e);
                     } catch (IllegalAccessException | InvocationTargetException e) {
                         throw new InvokeMethodException("Failed to invoke method", e);
                     }
                 } else {
-                    throw new IllegalFilterException("No parent for arg: " + arg.name() + ", cannot expand");
+                    throw new InvalidFilterException("No parent for arg: " + arg.name() + ", cannot expand");
                 }
             } else {
                 this.values.put(arg.name(), value(arg, parent));
+
+                if (arg.forceArray()) {
+                    forceArray.add(arg.name());
+                }
             }
         }
 
@@ -54,6 +66,7 @@ public class FilterWrapper {
             this.numIndexed++;
         }
     }
+
 
     public FilterWrapper(Filter filter) {
         this(filter, null);
@@ -122,7 +135,7 @@ public class FilterWrapper {
                     }
                 }
 
-                throw new IllegalFilterException("No enum constant: " + name + " for: " + enu.type().getName());
+                throw new InvalidFilterException("No enum constant: " + name + " for: " + enu.type().getName());
             }
 
             return vals;
@@ -137,12 +150,12 @@ public class FilterWrapper {
                         return val;
                     }
                 } catch (NoSuchMethodException e) {
-                    throw new IllegalFilterException("Cannot delegate to: " + arg.delegate() + ", no such method exists", e);
+                    throw new InvalidFilterException("Cannot delegate to: " + arg.delegate() + ", no such method exists", e);
                 } catch (IllegalAccessException | InvocationTargetException e) {
                     throw new InvokeMethodException("Failed to invoke method", e);
                 }
             } else {
-                throw new IllegalFilterException("No parent for arg: " + arg.name() + ", cannot delegate");
+                throw new InvalidFilterException("No parent for arg: " + arg.name() + ", cannot delegate");
             }
         } else {
             return new Object[0];
@@ -166,15 +179,24 @@ public class FilterWrapper {
     }
 
     public <T> Optional<T> get(String name, Class<T> type) {
+        type = ReflectionUtil.box(type);
+
+        boolean force = forceArray.contains(name);
+
         Object val = this.values.get(name);
         if (val != null) {
-            if (type.isInstance(val)) {
+            boolean inst = type.isInstance(val);
+            if (force && inst) {
                 return Optional.of((T) val);
             } else if (val.getClass().isArray() && Array.getLength(val) == 1) {
                 Object element = Array.get(val, 0);
                 if (type.isInstance(element)) {
                     return Optional.of((T) element);
+                } else if (inst) {
+                    return Optional.of((T) val);
                 }
+            } else if (inst) {
+                return Optional.of((T) val);
             }
         }
 
@@ -182,7 +204,7 @@ public class FilterWrapper {
     }
 
     public <T> T require(String name, Class<T> type) {
-        return get(name, type).orElseThrow(() -> new IllegalFilterException("No arg: " + name + " of type: " + type.getName()));
+        return get(name, type).orElseThrow(() -> new InvalidFilterException("No arg: " + name + " of type: " + type.getName()));
     }
 
 }

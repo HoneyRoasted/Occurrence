@@ -31,12 +31,12 @@ public class PolicyRegistry {
         this.cancellablePolicies.add(policy);
     }
 
-    public Optional<GenericPolicy<?>> genericPolicy(Object type) {
-        return this.genericPolicies.stream().filter(g -> g.target().isInstance(type)).findFirst();
+    public Optional<GenericPolicy<?>> genericPolicy(Class<?> type) {
+        return this.genericPolicies.stream().filter(g -> g.target().isAssignableFrom(type)).findFirst();
     }
 
-    public Optional<CancellablePolicy<?>> cancellablePolicy(Object type) {
-        return this.cancellablePolicies.stream().filter(g -> g.target().isInstance(type)).findFirst();
+    public Optional<CancellablePolicy<?>> cancellablePolicy(Class<?> type) {
+        return this.cancellablePolicies.stream().filter(g -> g.target().isAssignableFrom(type)).findFirst();
     }
 
 }

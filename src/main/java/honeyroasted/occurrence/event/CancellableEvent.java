@@ -7,8 +7,6 @@ public interface CancellableEvent {
 
     boolean isCancelled();
 
-    void setCancelled(boolean value);
-
     static CancellablePolicy<CancellableEvent> policy() {
         try {
             return new InvocableCancellablePolicy<>(null, CancellableEvent.class.getMethod("isCancelled"), CancellableEvent.class);
