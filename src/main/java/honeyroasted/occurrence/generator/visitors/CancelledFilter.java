@@ -40,7 +40,7 @@ public class CancelledFilter implements FilterVisitor {
                     String srcName = nameProvider.provide("cancellable_source");
                     constructorParams.add(srcName, invocable.getSource());
 
-                    getCancelled = invokeVirtual(get(loadThis(), srcName, constructorParams.getType(srcName)), invocable.getMethod().getName(), methodSignature(invocable.getMethod()))
+                    getCancelled = invokeVirtual(constructorParams.get(srcName), invocable.getMethod().getName(), methodSignature(invocable.getMethod()))
                         .arg(get(current));
                 } else {
                     getCancelled = invokeVirtual(get(current), invocable.getMethod().getName(), methodSignature(invocable.getMethod()));
@@ -48,7 +48,7 @@ public class CancelledFilter implements FilterVisitor {
             } else {
                 String policyName = nameProvider.provide("cancellable_policy");
                 constructorParams.add(policyName, policy);
-                getCancelled = invokeInterface(get(loadThis(), policyName, constructorParams.getType(policyName)), "isCancelled", methodSignature(BOOLEAN, type(Object.class)))
+                getCancelled = invokeInterface(constructorParams.get(policyName), "isCancelled", methodSignature(BOOLEAN, type(Object.class)))
                     .arg(get(current));
             }
 

@@ -2,6 +2,7 @@ package honeyroasted.occurrence.manager;
 
 import honeyroasted.occurrence.ListenerWrapper;
 
+import java.util.Collection;
 import java.util.function.Predicate;
 
 public interface ListenerRegistry<T> {
@@ -14,6 +15,8 @@ public interface ListenerRegistry<T> {
 
     void register(Class<?> listener);
 
+    Collection<ListenerWrapper<T>> listeners();
+
     default void unregister(Object listener) {
         this.unregister(l -> l.listener() == listener);
     }
@@ -21,4 +24,5 @@ public interface ListenerRegistry<T> {
     default void unregister(Class<?> listener) {
         this.unregister(l -> l.listener() == listener);
     }
+
 }

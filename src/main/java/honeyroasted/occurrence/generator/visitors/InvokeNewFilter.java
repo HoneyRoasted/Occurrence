@@ -72,7 +72,7 @@ public class InvokeNewFilter implements FilterVisitor {
                 String argName = nameProvider.provide("new_arg");
                 Class<?> param = target.getParameterTypes()[i - 1];
                 constructorParams.add(argName, annotation.require(String.valueOf(i - 1), param));
-                invoke.arg(get(loadThis(), argName, type(param)));
+                invoke.arg(constructorParams.get(argName));
             }
         }
 

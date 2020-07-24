@@ -3,6 +3,7 @@ package honeyroasted.occurrence.manager;
 import honeyroasted.occurrence.HandleEventException;
 import honeyroasted.occurrence.ListenerWrapper;
 
+import java.util.Collection;
 import java.util.function.Predicate;
 
 public class SynchronizedEventManager<T> implements EventManager<T> {
@@ -50,6 +51,13 @@ public class SynchronizedEventManager<T> implements EventManager<T> {
     public void register(Class<?> listener) {
         synchronized (this) {
             this.registry.register(listener);
+        }
+    }
+
+    @Override
+    public Collection<ListenerWrapper<T>> listeners() {
+        synchronized (this) {
+            return this.registry.listeners();
         }
     }
 }

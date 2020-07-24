@@ -1,55 +1,51 @@
 import honeyroasted.occurrence.annotation.Arg;
 import honeyroasted.occurrence.annotation.Filter;
-import honeyroasted.occurrence.annotation.Filters;
 import honeyroasted.occurrence.annotation.Listener;
-import honeyroasted.occurrence.event.CancellableEvent;
-import honeyroasted.occurrence.manager.BakingEventManager;
 import honeyroasted.occurrence.manager.EventManager;
-import honeyroasted.occurrence.manager.SimpleEventManager;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-import java.util.Arrays;
-import java.util.List;
 
 public class Test {
 
     public static void main(String[] args) {
-        EventManager<Object> manager = new BakingEventManager<>();
+        EventManager<Object> manager = EventManager.createNew();
 
-        manager.register(new Test());
+        manager.register(Test.class);
         manager.post("Hello world");
     }
 
     @Retention(RetentionPolicy.RUNTIME)
     @Filter(id = "invoke", args = {@Arg(stringVal = "valueOf"), @Arg(name = "source", classVal = String.class)})
     @Filter(id = "invoke", args = {@Arg(stringVal = "concat"), @Arg(name = "0", delegate = "value")})
-    public @interface MyAnnotation {
-        String value();
+    public @interface Concat {
+        String value() default "1";
+    }
+
+    @Retention(RetentionPolicy.RUNTIME)
+    @Filter(id = "invoke", args = {@Arg(stringVal = "repeat"), @Arg(name = "source", classVal = Repeat.Processor.class),
+            @Arg(name = "0", delegate = "value")})
+    public @interface Repeat {
+        int value() default 1;
+
+        class Processor {
+            public static String repeat(Object val, int times) {
+                StringBuilder str = new StringBuilder(String.valueOf(val));
+                for (int i = 0; i < times; i++) {
+                    str.append(val);
+                }
+                return str.toString();
+            }
+        }
     }
 
     @Listener
-    public void onStr0(@MyAnnotation("1") String val) {
+    public static void onStr(@Repeat(3) @Concat(" <- pretty") String val) {
         System.out.println(val);
     }
 
     @Listener
-    public void onStr1(@MyAnnotation("2") String val) {
-        System.out.println(val);
-    }
-
-    @Listener
-    public void onStr2(@MyAnnotation("3") String val) {
-        System.out.println(val);
-    }
-
-    @Listener
-    public void onStr3(@MyAnnotation("4") String val) {
-        System.out.println(val);
-    }
-
-    @Listener
-    public void onStr4(@MyAnnotation("5") String val) {
+    public static void onStr1(@Concat("2") @Repeat(2) String val) {
         System.out.println(val);
     }
 

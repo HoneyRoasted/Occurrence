@@ -9,11 +9,12 @@ import honeyroasted.pecans.util.ByteArrayClassLoader;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 
 public class SimpleEventManager<T> implements EventManager<T> {
-    private List<ListenerWrapper<T>> wrappers = new SortedList<>();
+    private List<ListenerWrapper<T>> wrappers = EventManager.newSortedList();
 
     private PolicyRegistry policyRegistry;
     private VisitorRegistry visitorRegistry;
@@ -72,6 +73,11 @@ public class SimpleEventManager<T> implements EventManager<T> {
     public void register(Class<?> listener) {
         this.wrappers.addAll((Collection) ListenerWrapperGenerator.genWrappers(
                 ListenerWrapperGenerator.gen(listener, visitorRegistry, policyRegistry), new ByteArrayClassLoader(this.loader)));
+    }
+
+    @Override
+    public Collection<ListenerWrapper<T>> listeners() {
+        return List.copyOf(this.wrappers);
     }
 
 }

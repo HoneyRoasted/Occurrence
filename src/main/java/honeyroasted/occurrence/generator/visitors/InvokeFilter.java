@@ -96,7 +96,7 @@ public class InvokeFilter implements FilterVisitor {
         } else {
             TypedNode src;
             if (listener) {
-                src = get(loadThis(), "listener", constructorParams.getType("listener"));
+                src = constructorParams.get("listener");
             } else {
                 src = get(current);
             }
@@ -113,13 +113,13 @@ public class InvokeFilter implements FilterVisitor {
                     String name = nameProvider.provide(method + "_arg");
                     Class<?> param = target.getParameterTypes()[i];
                     constructorParams.add(name, annotation.require(String.valueOf(i - 1), param), type(param));
-                    invoke.arg(get(loadThis(), name, type(param)));
+                    invoke.arg(constructorParams.get(name));
                 }
             } else {
                 String name = nameProvider.provide(method + "_arg");
                 Class<?> param = target.getParameterTypes()[i];
                 constructorParams.add(name, annotation.require(String.valueOf(i), param), type(param));
-                invoke.arg(get(loadThis(), name, type(param)));
+                invoke.arg(constructorParams.get(name));
             }
         }
 

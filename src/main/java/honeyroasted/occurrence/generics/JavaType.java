@@ -34,6 +34,29 @@ public class JavaType {
         this.array = array;
     }
 
+    public JavaType addGeneric(JavaType type) {
+        this.generics.getParameters().add(type);
+        return this;
+    }
+
+    public JavaType addGeneric(Type type) {
+        return addGeneric(JavaType.of(type));
+    }
+
+    public JavaType addGenerics(JavaType... types) {
+        for (int i = 0; i < types.length; i++) {
+            addGeneric(types[i]);
+        }
+        return this;
+    }
+
+    public JavaType addGenerics(Type... types) {
+        for (int i = 0; i < types.length; i++) {
+            addGeneric(types[i]);
+        }
+        return this;
+    }
+
     public boolean isPrimitive() {
         return getEffectiveType().isPrimitive();
     }

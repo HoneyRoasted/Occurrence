@@ -52,6 +52,12 @@ public class ListenerWrapperGenerator {
                 byteArrayClassLoader = new ByteArrayClassLoader(loader);
             }
 
+            /*try {
+                r.getClassNode().writeIn(Paths.get("bytecode_tests"));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }*/
+
             byte[] cls = r.getClassNode().toByteArray();
             Class<?> loaded = byteArrayClassLoader.defineClass(r.getClassNode().getSignature().writeInternalName().replace('/', '.'), cls);
             try {
@@ -186,7 +192,7 @@ public class ListenerWrapperGenerator {
         if (staticListener) {
             invoke = invokeStatic(type(listenerClass), method.getName(), sig);
         } else {
-            invoke = invokeVirtual(get(loadThis(), "listener", type(listenerClass)), method.getName(), sig);
+            invoke = invokeVirtual(params.get("listener"), method.getName(), sig);
         }
 
         Map<String, Class<?>> seenTests = new HashMap<>();
@@ -225,7 +231,7 @@ public class ListenerWrapperGenerator {
                     if (invocable.getSource() != null) {
                         String srcName = nameProvider.provide("generic_source");
                         params.add(srcName, invocable.getSource());
-                        getType = invokeVirtual(get(loadThis(), srcName, params.getType(srcName)), invocable.getMethod().getName(),
+                        getType = invokeVirtual(params.get(srcName), invocable.getMethod().getName(),
                                 methodSignature(invocable.getMethod()))
                                 .arg(get(var));
 
@@ -235,18 +241,18 @@ public class ListenerWrapperGenerator {
                 } else {
                     String policyName = nameProvider.provide("generic_policy");
                     params.add(policyName, policy);
-                    getType = invokeInterface(get(loadThis(), policyName, params.getType(policyName)), "generics",
+                    getType = invokeInterface(params.get(policyName), "generics",
                             methodSignature(type(JavaType.class), type(Object.class)))
                         .arg(get(var));
                 }
 
                 String targetName = nameProvider.provide("param_type");
                 params.add(targetName, JavaType.of(method.getGenericParameterTypes()[finalI]));
-                sequence.add(ifBlock(not(invokeVirtual(get(loadThis(), targetName, params.getType(targetName)), "isAssignableFrom", methodSignature(BOOLEAN, type(JavaType.class)))
+                sequence.add(ifBlock(not(invokeVirtual(params.get(targetName), "isAssignableFrom", methodSignature(BOOLEAN, type(JavaType.class)))
                         .arg(invokeVirtual(
                                 getType,
                                 "getSuperType", methodSignature(type(JavaType.class), type(Class.class)))
-                                .arg(invokeVirtual(get(loadThis(), targetName, params.getType(targetName)), "getEffectiveType", methodSignature(type(Class.class)))))), ret()));
+                                .arg(invokeVirtual(params.get(targetName), "getEffectiveType", methodSignature(type(Class.class)))))), ret()));
             });
         }
 
@@ -272,22 +278,21 @@ public class ListenerWrapperGenerator {
     }
 
     public static void genNonHandleMethods(ClassNode node, ConstructorParams params, Listener listener, String name, TypeInformal eventType, Class<?> event, Object listenerObj) {
-        String prioVar = params.add("priority", listener.priority(), INT);
-        String nameVar = params.add("name", name);
-        String lisVar = params.add("listener", listenerObj);
+        params.add("priority", listener.priority(), INT);
+        params.add("name", name);
+        params.addParam("listener", listenerObj);
 
         node.add(method(ACC_PUBLIC, "priority", methodSignature(INT),
-                ret(get(loadThis(), prioVar, INT))));
+                ret(params.get("priority"))));
 
         node.add(method(ACC_PUBLIC, "name", methodSignature(type(String.class)),
-                ret(get(loadThis(), nameVar, type(String.class)))));
+                ret(params.get("name"))));
+
+        node.add(method(ACC_PUBLIC, "listener", methodSignature(type(Object.class)),
+                ret(params.get("listener"))));
 
         node.add(method(ACC_PUBLIC, "event", methodSignature(type(Class.class).addPart(wildcard())),
                 ret(constant(ReflectionUtil.box(event)))));
-
-        node.add(method(ACC_PUBLIC, "listener", methodSignature(type(Object.class)),
-                ret(get(loadThis(), lisVar, type(listenerObj.getClass())))));
-
     }
 
     public static String createHandleName(Class<?> cls, Method method, Object owner) {
