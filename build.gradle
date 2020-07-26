@@ -15,7 +15,7 @@ dependencies {
     implementation(
             "org.ow2.asm:asm:8.0.1",
             "org.ow2.asm:asm-commons:8.0.1",
-            "com.github.HoneyRoasted:Pecans:b4fde792a6")
+            "com.github.HoneyRoasted:Pecans:b07d1a9288")
 
     testImplementation("org.ow2.asm:asm-util:8.0.1")
 }

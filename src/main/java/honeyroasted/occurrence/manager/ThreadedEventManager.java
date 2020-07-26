@@ -64,7 +64,7 @@ public class ThreadedEventManager<T> implements EventManager<T> {
 
     @Override
     public Collection<ListenerWrapper<T>> listeners() {
-        return List.copyOf(manager.listeners());
+        return manager.listeners();
     }
 
     @Override

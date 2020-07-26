@@ -86,7 +86,7 @@ public class BakingEventManager<T> implements EventManager<T> {
 
     @Override
     public Collection<ListenerWrapper<T>> listeners() {
-        return List.copyOf(this.wrappers);
+        return Collections.unmodifiableCollection(new ArrayList<>(this.wrappers));
     }
 
     private void rebake() {
@@ -105,7 +105,7 @@ public class BakingEventManager<T> implements EventManager<T> {
         Sequence seq = sequence();
         post.body(seq);
 
-        ListenerWrapper<?>[] wrappers = this.wrappers.toArray(ListenerWrapper[]::new);
+        ListenerWrapper<?>[] wrappers = this.wrappers.toArray(new ListenerWrapper[0]);
         params.add("wrappers", wrappers, array(type(ListenerWrapper.class)));
 
 

@@ -77,7 +77,7 @@ public class SimpleEventManager<T> implements EventManager<T> {
 
     @Override
     public Collection<ListenerWrapper<T>> listeners() {
-        return List.copyOf(this.wrappers);
+        return Collections.unmodifiableCollection(new ArrayList<>(this.wrappers));
     }
 
 }

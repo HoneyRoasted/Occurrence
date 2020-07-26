@@ -41,7 +41,7 @@ public class InvokeNewFilter implements FilterVisitor {
                         if (!parameter.isAssignableFrom(input.getEffectiveType())) {
                             found = false;
                         }
-                    } else if (annotation.get(String.valueOf(i - 1), parameter).isEmpty()) {
+                    } else if (!annotation.get(String.valueOf(i - 1), parameter).isPresent()) {
                         found = false;
                     }
                 }

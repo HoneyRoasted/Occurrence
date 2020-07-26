@@ -48,7 +48,7 @@ public class InvokeFilter implements FilterVisitor {
 
         for (Method m : targetClass.getMethods()) {
             if (m.getName().equals(method)) {
-                if ((source.isEmpty() || Modifier.isStatic(m.getModifiers())) && (!listener || Modifier.isStatic(m.getModifiers()) || !Modifier.isStatic(listenerMethod.getModifiers()))) {
+                if ((!source.isPresent() || Modifier.isStatic(m.getModifiers())) && (!listener || Modifier.isStatic(m.getModifiers()) || !Modifier.isStatic(listenerMethod.getModifiers()))) {
                     if (size == m.getParameterCount()) {
                         boolean found = true;
 
@@ -59,11 +59,11 @@ public class InvokeFilter implements FilterVisitor {
                                     if (!parameter.isAssignableFrom(input.getEffectiveType())) {
                                         found = false;
                                     }
-                                } else if (annotation.get(String.valueOf(i - 1), parameter).isEmpty()) {
+                                } else if (!annotation.get(String.valueOf(i - 1), parameter).isPresent()) {
                                     found = false;
                                 }
                             } else {
-                                if (annotation.get(String.valueOf(i), parameter).isEmpty()) {
+                                if (!annotation.get(String.valueOf(i), parameter).isPresent()) {
                                     found = false;
                                 }
                             }

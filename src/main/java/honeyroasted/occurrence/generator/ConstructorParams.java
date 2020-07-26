@@ -106,7 +106,7 @@ public class ConstructorParams {
     }
 
     public Object[] genParams() {
-        return this.params.values().toArray(Object[]::new);
+        return this.params.values().toArray();
     }
 
     public Map<String, Object> getParams() {
