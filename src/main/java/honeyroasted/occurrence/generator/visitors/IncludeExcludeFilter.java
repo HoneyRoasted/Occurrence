@@ -36,7 +36,7 @@ public class IncludeExcludeFilter implements FilterVisitor {
     @Override
     public Result visitTransform(Sequence node, FilterWrapper annotation, String current, JavaType input, ConstructorParams constructorParams, PolicyRegistry policyRegistry, NameProvider nameProvider, Method listenerMethod) {
         List<Class> classes = Stream.of(annotation.require("value", Class[].class)).collect(Collectors.toList());
-        JavaType result = ReflectionUtil.getWithRespect(input, ReflectionUtil.getCommonParent(classes)).orElse(input);
+        JavaType result =JavaType.of(ReflectionUtil.getCommonParent(classes));
 
         TypedNode condition = null;
 

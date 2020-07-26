@@ -10,16 +10,18 @@ public @interface Filters {
     @interface Default { }
 
     @Retention(RetentionPolicy.RUNTIME)
-    @Filter(id = "invoke", args = {@Arg(delegate = "value"), @Arg(expand = "args")})
+    @Filter(id = "invoke", args = {@Arg(delegate = "value"), @Arg(name = "source", delegate = "source"), @Arg(expand = "args")})
     @interface Invoke {
         String value() default Filter.DEFAULT;
+        Class<?> source() default Void.class;
         Arg[] args() default {};
 
 
         @Retention(RetentionPolicy.RUNTIME)
-        @Filter(id = "invoke.predicate", args = {@Arg(delegate = "value"), @Arg(expand = "args")})
+        @Filter(id = "invoke.predicate", args = {@Arg(delegate = "value"), @Arg(name = "source", delegate = "source"), @Arg(expand = "args")})
         @interface Predicate {
             String value() default Filter.DEFAULT;
+            Class<?> source() default Void.class;
             Arg[] args() default {};
         }
 
@@ -34,16 +36,18 @@ public @interface Filters {
     @interface Listener {
 
         @Retention(RetentionPolicy.RUNTIME)
-        @Filter(id = "listener.invoke", args = {@Arg(delegate = "value"), @Arg(expand = "args")})
+        @Filter(id = "listener.invoke", args = {@Arg(delegate = "value"), @Arg(name = "source", delegate = "source"), @Arg(expand = "args")})
         @interface Invoke {
             String value() default Filter.DEFAULT;
+            Class<?> source() default Void.class;
             Arg[] args() default {};
 
 
             @Retention(RetentionPolicy.RUNTIME)
-            @Filter(id = "listener.invoke.predicate", args = {@Arg(delegate = "value"), @Arg(expand = "args")})
+            @Filter(id = "listener.invoke.predicate", args = {@Arg(delegate = "value"), @Arg(name = "source", delegate = "source"), @Arg(expand = "args")})
             @interface Predicate {
                 String value() default Filter.DEFAULT;
+                Class<?> source() default Void.class;
                 Arg[] args() default {};
             }
         }

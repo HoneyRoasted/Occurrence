@@ -188,6 +188,8 @@ public class ReflectionUtil {
     public static Class getCommonParent(List<Class> cls) {
         if (cls.isEmpty()) {
             return Object.class;
+        } else if (cls.size() == 1) {
+            return cls.get(0);
         }
 
         List<Class> current = new ArrayList<>();

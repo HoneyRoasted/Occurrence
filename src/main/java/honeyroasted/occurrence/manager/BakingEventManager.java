@@ -90,6 +90,11 @@ public class BakingEventManager<T> implements EventManager<T> {
     }
 
     private void rebake() {
+        if (this.wrappers.isEmpty()) {
+            this.baked = new Baked();
+            return;
+        }
+
         TypeParameterized clsType = parameterized("Lhoneyroasted/occurrence/generated/bake/Baked$" + System.identityHashCode(this) + "$" + uniqueSuffix++ + ";");
         ClassNode baked = classDef(ACC_PUBLIC, classSignature(clsType)
                 .setSuperclass(type(Baked.class)));

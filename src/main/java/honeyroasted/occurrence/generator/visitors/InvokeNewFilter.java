@@ -27,7 +27,7 @@ public class InvokeNewFilter implements FilterVisitor {
     @Override
     public Result visitTransform(Sequence node, FilterWrapper annotation, String current, JavaType input, ConstructorParams constructorParams, PolicyRegistry policyRegistry, NameProvider nameProvider, Method listenerMethod) {
         Class<?> src = annotation.require("value", Class.class);
-        int size = annotation.numIndexed() + 1;
+        int size = annotation.arraySize() + 1;
 
         Constructor target = null;
 
@@ -41,7 +41,7 @@ public class InvokeNewFilter implements FilterVisitor {
                         if (!parameter.isAssignableFrom(input.getEffectiveType())) {
                             found = false;
                         }
-                    } else if (!annotation.get(String.valueOf(i - 1), parameter).isPresent()) {
+                    } else if (!annotation.get(i - 1, parameter).isPresent()) {
                         found = false;
                     }
                 }
@@ -71,7 +71,7 @@ public class InvokeNewFilter implements FilterVisitor {
             if (i != 0) {
                 String argName = nameProvider.provide("new_arg");
                 Class<?> param = target.getParameterTypes()[i - 1];
-                constructorParams.add(argName, annotation.require(String.valueOf(i - 1), param));
+                constructorParams.add(argName, annotation.require(i - 1, param));
                 invoke.arg(constructorParams.get(argName));
             }
         }

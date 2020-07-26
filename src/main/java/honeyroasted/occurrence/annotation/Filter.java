@@ -13,4 +13,6 @@ public @interface Filter {
 
     Arg[] args() default {};
 
+    boolean array() default false;
+
 }

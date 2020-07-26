@@ -1,5 +1,7 @@
 import honeyroasted.occurrence.annotation.Arg;
+import honeyroasted.occurrence.annotation.Expand;
 import honeyroasted.occurrence.annotation.Filter;
+import honeyroasted.occurrence.annotation.Filters;
 import honeyroasted.occurrence.annotation.Listener;
 import honeyroasted.occurrence.manager.EventManager;
 
@@ -17,15 +19,15 @@ public class Test {
 
     @Retention(RetentionPolicy.RUNTIME)
     @Filter(id = "invoke", args = {@Arg(stringVal = "valueOf"), @Arg(name = "source", classVal = String.class)})
-    @Filter(id = "invoke", args = {@Arg(stringVal = "concat"), @Arg(name = "0", delegate = "value")})
+    @Filter(id = "invoke", args = {@Arg(stringVal = "concat"), @Arg(delegate = "value")})
     public @interface Concat {
         String value() default "1";
     }
 
+    @Filters.Invoke(source = Repeat.Processor.class, value = "repeat")
     @Retention(RetentionPolicy.RUNTIME)
-    @Filter(id = "invoke", args = {@Arg(stringVal = "repeat"), @Arg(name = "source", classVal = Repeat.Processor.class),
-            @Arg(name = "0", delegate = "value")})
     public @interface Repeat {
+        @Expand(type = Filters.Invoke.class)
         int value() default 1;
 
         class Processor {
@@ -45,8 +47,14 @@ public class Test {
     }
 
     @Listener
+    @Filters.Include(String.class)
+    @Filters.Invoke.Predicate(source = Test.class, value = "allow")
     public static void onStr1(@Concat("2") @Repeat(2) String val) {
         System.out.println(val);
+    }
+
+    public static boolean allow(String str) {
+        return true;
     }
 
 

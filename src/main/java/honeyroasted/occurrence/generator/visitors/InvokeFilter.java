@@ -41,10 +41,10 @@ public class InvokeFilter implements FilterVisitor {
         String method = annotation.require("value", String.class);
         Method target = null;
 
-        Optional<Class> source = annotation.get("source", Class.class);
+        Optional<Class> source = annotation.get("source", Class.class).map(c -> c.equals(Void.class) ? null : c);
         Class<?> targetClass = this.listener ? listenerMethod.getDeclaringClass() : source.orElse(input.getEffectiveType());
 
-        int size = annotation.numIndexed() + (listener || source.isPresent() ? 1 : 0);
+        int size = annotation.arraySize() + (listener || source.isPresent() ? 1 : 0);
 
         for (Method m : targetClass.getMethods()) {
             if (m.getName().equals(method)) {
@@ -59,11 +59,11 @@ public class InvokeFilter implements FilterVisitor {
                                     if (!parameter.isAssignableFrom(input.getEffectiveType())) {
                                         found = false;
                                     }
-                                } else if (!annotation.get(String.valueOf(i - 1), parameter).isPresent()) {
+                                } else if (!annotation.get(i - 1, parameter).isPresent()) {
                                     found = false;
                                 }
                             } else {
-                                if (!annotation.get(String.valueOf(i), parameter).isPresent()) {
+                                if (!annotation.get(i, parameter).isPresent()) {
                                     found = false;
                                 }
                             }
@@ -104,7 +104,7 @@ public class InvokeFilter implements FilterVisitor {
         }
 
         if (listener || source.isPresent()) {
-            invoke.arg(get(current));
+            invoke.arg(convert(type(target.getParameterTypes()[0]), get(current)));
         }
 
         for (int i = 0; i < size; i++) {
@@ -112,13 +112,13 @@ public class InvokeFilter implements FilterVisitor {
                 if (i > 0) {
                     String name = nameProvider.provide(method + "_arg");
                     Class<?> param = target.getParameterTypes()[i];
-                    constructorParams.add(name, annotation.require(String.valueOf(i - 1), param), type(param));
+                    constructorParams.add(name, annotation.require(i - 1, param), type(param));
                     invoke.arg(constructorParams.get(name));
                 }
             } else {
                 String name = nameProvider.provide(method + "_arg");
                 Class<?> param = target.getParameterTypes()[i];
-                constructorParams.add(name, annotation.require(String.valueOf(i), param), type(param));
+                constructorParams.add(name, annotation.require(i, param), type(param));
                 invoke.arg(constructorParams.get(name));
             }
         }

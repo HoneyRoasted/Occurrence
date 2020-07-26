@@ -1,7 +1,6 @@
 package honeyroasted.occurrence.generator;
 
 import honeyroasted.occurrence.generator.visitors.CancelledFilter;
-import honeyroasted.occurrence.generator.visitors.DefaultFilter;
 import honeyroasted.occurrence.generator.visitors.EqualFilter;
 import honeyroasted.occurrence.generator.visitors.IncludeExcludeFilter;
 import honeyroasted.occurrence.generator.visitors.InvokeFilter;
@@ -9,6 +8,7 @@ import honeyroasted.occurrence.generator.visitors.InvokeNewFilter;
 import honeyroasted.occurrence.generator.visitors.IterableAllFilter;
 import honeyroasted.occurrence.generator.visitors.IterableFirstLastFilter;
 import honeyroasted.occurrence.generator.visitors.NonnullFilter;
+import honeyroasted.occurrence.generator.visitors.NoopFilter;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -24,7 +24,7 @@ public class VisitorRegistry {
     private Map<String, FilterVisitor> visitors = new LinkedHashMap<>();
 
     public void registerDefaults() {
-        register(new DefaultFilter());
+        register(new NoopFilter("listener"));
 
         register(new InvokeNewFilter());
         register(new InvokeFilter(false, false, "invoke"));

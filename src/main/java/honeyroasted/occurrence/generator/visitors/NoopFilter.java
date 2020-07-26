@@ -10,17 +10,26 @@ import honeyroasted.pecans.node.instruction.Sequence;
 
 import java.lang.reflect.Method;
 
+public class NoopFilter implements FilterVisitor {
+    private String id;
 
-public class DefaultFilter implements FilterVisitor {
+    public NoopFilter(String id) {
+        this.id = id;
+    }
 
     @Override
     public String id() {
-        return "default";
+        return this.id;
     }
 
     @Override
     public Result visitTransform(Sequence node, FilterWrapper annotation, String current, JavaType input, ConstructorParams constructorParams, PolicyRegistry policyRegistry, NameProvider nameProvider, Method listenerMethod) {
         return new Result(current, input);
+    }
+
+    @Override
+    public boolean filterOnly() {
+        return true;
     }
 
 }
