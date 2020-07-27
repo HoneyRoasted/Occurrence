@@ -24,8 +24,6 @@ public class VisitorRegistry {
     private Map<String, FilterVisitor> visitors = new LinkedHashMap<>();
 
     public void registerDefaults() {
-        register(new NoopFilter("listener"));
-
         register(new InvokeNewFilter());
         register(new InvokeFilter(false, false, "invoke"));
         register(new InvokeFilter(false, true, "invoke.predicate"));

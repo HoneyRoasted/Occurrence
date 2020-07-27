@@ -6,7 +6,6 @@ import honeyroasted.occurrence.InvokeMethodException;
 import honeyroasted.occurrence.ListenerWrapper;
 import honeyroasted.occurrence.annotation.FilterWrapper;
 import honeyroasted.occurrence.annotation.FilterWrapperBuilder;
-import honeyroasted.occurrence.annotation.Listener;
 import honeyroasted.occurrence.generics.JavaType;
 import honeyroasted.occurrence.generics.ReflectionUtil;
 import honeyroasted.occurrence.policy.InvocableGenericPolicy;
@@ -17,7 +16,6 @@ import honeyroasted.pecans.node.instruction.Sequence;
 import honeyroasted.pecans.node.instruction.TypedNode;
 import honeyroasted.pecans.node.instruction.invocation.Invoke;
 import honeyroasted.pecans.type.MethodSignature;
-import honeyroasted.pecans.type.Types;
 import honeyroasted.pecans.type.type.TypeInformal;
 import honeyroasted.pecans.util.ByteArrayClassLoader;
 
@@ -31,10 +29,10 @@ import java.lang.reflect.Type;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -53,11 +51,11 @@ public class ListenerWrapperGenerator {
                 byteArrayClassLoader = new ByteArrayClassLoader(loader);
             }
 
-            /*try {
+            try {
                 r.getClassNode().writeIn(Paths.get("bytecode_tests"));
             } catch (IOException e) {
                 e.printStackTrace();
-            }*/
+            }
 
             byte[] cls = r.getClassNode().toByteArray();
             Class<?> loaded = byteArrayClassLoader.defineClass(r.getClassNode().getSignature().writeInternalName().replace('/', '.'), cls);
@@ -104,7 +102,7 @@ public class ListenerWrapperGenerator {
     public static Result gen(Method method, Object listener, Class<?> listenerClass, VisitorRegistry visitorRegistry, PolicyRegistry policyRegistry, boolean staticListener) {
         List<FilterWrapper> wrappers = FilterWrapperBuilder.of(method.getAnnotations());
         if (wrappers.stream().noneMatch(f -> f.getId().equals("listener"))) {
-            throw new InvalidListenerException("Listener method must be annotated with @Listener", method);
+            throw new InvalidListenerException("Listener method must be annotated with listener filter", method);
         } else {
             FilterWrapper annotation = wrappers.stream().filter(f -> f.getId().equals("listener")).findFirst().get();
 
@@ -121,7 +119,7 @@ public class ListenerWrapperGenerator {
             }
 
             if (event == null) {
-                event = JavaType.of(annotation.get("event", Class.class).orElse(Object.class));
+                event = JavaType.of(ReflectionUtil.getCommonParent(annotation.get("event", Class[].class).orElse(new Class[]{Object.class})));
             }
 
             ClassNode classNode = classDef(ACC_PUBLIC, classSignature(parameterized("Lhoneyroasted/occurrence/generated/" + listenerClass.getSimpleName() + "$" + method.getName() + "$" + System.identityHashCode(listener) + "$" + (uniqueSuffix++) + ";"))
@@ -170,15 +168,18 @@ public class ListenerWrapperGenerator {
         JavaType evGenType = event;
 
         for (FilterWrapper wrapper : FilterWrapperBuilder.of(method.getAnnotations())) {
-            FilterVisitor visitor = visitorRegistry.get(wrapper.getId()).orElseThrow(() -> new InvalidListenerException("No filter registered for: " + wrapper.getId(), method));
+            Optional<FilterVisitor> visitorOptional = visitorRegistry.get(wrapper.getId());
 
-            if (!visitor.filterOnly()) {
-                throw new InvalidListenerException("Listener method annotation must be filter only", method);
+            if (visitorOptional.isPresent()) {
+                FilterVisitor visitor = visitorOptional.get();
+                if (!visitor.filterOnly()) {
+                    throw new InvalidListenerException("Listener method annotation must be filter only", method);
+                }
+
+                FilterVisitor.Result result = visitor.visitTransform(sequence, wrapper, evVar, evGenType, params, policyRegistry, nameProvider, method);
+                evVar = result.getVariable();
+                evGenType = result.getReturnType();
             }
-
-            FilterVisitor.Result result = visitor.visitTransform(sequence, wrapper, evVar, evGenType, params, policyRegistry, nameProvider, method);
-            evVar = result.getVariable();
-            evGenType = result.getReturnType();
         }
 
         for (int i = 0; i < parameterAnnotations.length; i++) {
@@ -189,11 +190,14 @@ public class ListenerWrapperGenerator {
             JavaType type = evGenType;
 
             for (FilterWrapper wrapper : filters) {
-                FilterVisitor visitor = visitorRegistry.get(wrapper.getId()).orElseThrow(() -> new InvalidListenerException("No filter registered for: " + wrapper.getId(), method));
+                Optional<FilterVisitor> visitorOptional = visitorRegistry.get(wrapper.getId());
 
-                FilterVisitor.Result result = visitor.visitTransform(sequence, wrapper, var, type, params, policyRegistry, nameProvider, method);
-                var = result.getVariable();
-                type = result.getReturnType();
+                if (visitorOptional.isPresent()) {
+                    FilterVisitor visitor = visitorOptional.get();
+                    FilterVisitor.Result result = visitor.visitTransform(sequence, wrapper, var, type, params, policyRegistry, nameProvider, method);
+                    var = result.getVariable();
+                    type = result.getReturnType();
+                }
             }
             vars[i] = var;
             varTypes[i] = type;

@@ -10,42 +10,24 @@ import java.util.Optional;
 
 public class FilterWrapper {
     private String id;
-    private Map<String, Value> mapValues;
-    private List<Value> arrayValues;
+    private Map<String, Object> mapValues;
+    private List<Object> arrayValues;
 
-    public FilterWrapper(String id, Map<String, Value> mapValues, List<Value> arrayValues) {
+    public FilterWrapper(String id, Map<String, Object> mapValues, List<Object> arrayValues) {
         this.id = id;
         this.mapValues = mapValues;
         this.arrayValues = arrayValues;
-    }
-
-    public static class Value {
-        private Object value;
-        private boolean forceArray;
-
-        public Value(Object value, boolean forceArray) {
-            this.value = value;
-            this.forceArray = forceArray;
-        }
-
-        public Object getValue() {
-            return value;
-        }
-
-        public boolean isForceArray() {
-            return forceArray;
-        }
     }
 
     public String getId() {
         return id;
     }
 
-    public Map<String, Value> getMapValues() {
+    public Map<String, Object> getMapValues() {
         return mapValues;
     }
 
-    public List<Value> getArrayValues() {
+    public List<Object> getArrayValues() {
         return arrayValues;
     }
 
@@ -69,24 +51,18 @@ public class FilterWrapper {
         return get(index, type).orElseThrow(() -> new InvalidFilterException("No arg: " + index + " of type: " + type.getName()));
     }
 
-    private <T> Optional<T> get(Value value, Class<T> type) {
+    private <T> Optional<T> get(Object value, Class<T> type) {
         type = ReflectionUtil.box(type);
 
         if (value != null) {
-            Object val = value.getValue();
-            boolean force = value.isForceArray();
-            boolean inst = type.isInstance(val);
-            if (force && inst) {
-                return Optional.of((T) val);
-            } else if (val.getClass().isArray() && Array.getLength(val) == 1) {
-                Object element = Array.get(val, 0);
-                if (type.isInstance(element)) {
-                    return Optional.of((T) element);
-                } else if (inst) {
-                    return Optional.of((T) val);
-                }
-            } else if (inst) {
-                return Optional.of((T) val);
+            if (type.isInstance(value)) {
+                return Optional.of((T) value);
+            } else if (value.getClass().isArray() && Array.getLength(value) == 1 && type.isInstance(Array.get(value, 0))) {
+                return Optional.of((T) Array.get(value, 0));
+            } else if (type.isArray() && ReflectionUtil.box(type.getComponentType()).isInstance(value)) {
+                Object arr = Array.newInstance(type.getComponentType(), 1);
+                Array.set(arr, 0, value);
+                return Optional.of((T) arr);
             }
         }
 

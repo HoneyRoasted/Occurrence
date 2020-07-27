@@ -38,28 +38,31 @@ public class FilterWrapperBuilder {
                 List<Filter> filters = get(annotation);
                 for (Filter filter : filters) {
                     String id = filter.id();
-                    Map<String, FilterWrapper.Value> mapArgs = new HashMap<>();
-                    List<FilterWrapper.Value> arrayArgs = new ArrayList<>();
+                    Map<String, Object> mapArgs = new HashMap<>();
+                    List<Object> arrayArgs = new ArrayList<>();
 
                     for (Arg arg : filter.args()) {
                         Object obj = value(arg, parent);
-                        FilterWrapper.Value value = new FilterWrapper.Value(obj, arg.forceArray());
 
                         if (filter.array() || (arg.name().equals("value") && mapArgs.containsKey("value"))) {
                             if (arg.expand().equals(Filter.DEFAULT)) {
-                                arrayArgs.add(value);
+                                arrayArgs.add(obj);
                             }
                         } else {
-                            mapArgs.put(arg.name(), value);
+                            mapArgs.put(arg.name(), obj);
                         }
                     }
 
                     for (Object expand : expansions) {
                         if (expand instanceof Arg) {
                             Arg arg = (Arg) expand;
-                            arrayArgs.add(new FilterWrapper.Value(value(arg, parent), arg.forceArray()));
+                            arrayArgs.add(value(arg, parent));
+                        } else if (expand instanceof Arg[]) {
+                            for (Arg arg : (Arg[]) expand) {
+                                arrayArgs.add(value(arg, parent));
+                            }
                         } else {
-                            arrayArgs.add(new FilterWrapper.Value(expand, false));
+                            arrayArgs.add(expand);
                         }
                     }
                     res.add(new FilterWrapper(id, mapArgs, arrayArgs));
@@ -80,8 +83,8 @@ public class FilterWrapperBuilder {
                                     throw new InvokeMethodException("Failed to invoke method", e);
                                 }
                             }
-                        } else if (method.isAnnotationPresent(Expand.class)) {
-                            Expand expand = method.getAnnotation(Expand.class);
+                        } else if (method.isAnnotationPresent(ExpandArgs.class)) {
+                            ExpandArgs expand = method.getAnnotation(ExpandArgs.class);
                             if (expand.type().isAssignableFrom(child.annotationType())) {
                                 try {
                                     Object obj = method.invoke(annotation);
@@ -100,6 +103,26 @@ public class FilterWrapperBuilder {
                     }
 
                     res.addAll(of(child, delegated, expanded, seen));
+                }
+
+                for (Method method : annotation.annotationType().getDeclaredMethods()) {
+                    if (method.isAnnotationPresent(ExpandFilters.class)) {
+                        try {
+                            Object obj = method.invoke(annotation);
+                            if (obj.getClass().isArray()) {
+                                for (int i = 0; i < Array.getLength(obj); i++) {
+                                    Object el = Array.get(obj, i);
+                                    if (el instanceof Annotation) {
+                                        res.addAll(of((Annotation) el, new HashMap<>(), new ArrayList<>(), new HashSet<>()));
+                                    }
+                                }
+                            } else if (obj instanceof Annotation) {
+                                res.addAll(of((Annotation) obj, new HashMap<>(), new ArrayList<>(), new HashSet<>()));
+                            }
+                        } catch (IllegalAccessException | InvocationTargetException e) {
+                            throw new InvokeMethodException("Failed to invoke method", e);
+                        }
+                    }
                 }
             }
         }

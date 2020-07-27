@@ -5,7 +5,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Expand {
+public @interface ExpandArgs {
 
     Class<? extends Annotation> type();
 

@@ -2,6 +2,7 @@ package honeyroasted.occurrence.generator.visitors;
 
 import honeyroasted.occurrence.InvalidListenerException;
 import honeyroasted.occurrence.annotation.FilterWrapper;
+import honeyroasted.occurrence.annotation.Tristate;
 import honeyroasted.occurrence.generator.ConstructorParams;
 import honeyroasted.occurrence.generator.FilterVisitor;
 import honeyroasted.occurrence.generator.NameProvider;
@@ -28,7 +29,7 @@ public class CancelledFilter implements FilterVisitor {
 
     @Override
     public Result visitTransform(Sequence node, FilterWrapper annotation, String current, JavaType input, ConstructorParams constructorParams, PolicyRegistry policyRegistry, NameProvider nameProvider, Method listenerMethod) {
-        boolean cancelled = annotation.get("value", Boolean.class).orElse(false);
+        Tristate cancelled = annotation.require("value", Tristate.class);
 
         Optional<CancellablePolicy<?>> policyOptional = policyRegistry.cancellablePolicy(input.getEffectiveType());
         if (policyOptional.isPresent()) {
@@ -52,12 +53,12 @@ public class CancelledFilter implements FilterVisitor {
                     .arg(get(current));
             }
 
-            if (cancelled) {
+            if (cancelled == Tristate.TRUE) {
                 node.add(ifBlock(not(getCancelled), ret()));
-            } else {
+            } else if (cancelled == Tristate.FALSE) {
                 node.add(ifBlock(getCancelled, ret()));
             }
-        } else {
+        } else if (cancelled == Tristate.TRUE) {
             throw new InvalidListenerException("No cancellable policy for: " + input.getEffectiveType().getName(), listenerMethod);
         }
 

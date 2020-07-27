@@ -104,7 +104,8 @@ public class InvokeFilter implements FilterVisitor {
         }
 
         if (listener || source.isPresent()) {
-            invoke.arg(convert(type(target.getParameterTypes()[0]), get(current)));
+            Class<?> type = target.getParameterTypes()[0];
+            invoke.arg(type.isAssignableFrom(input.getEffectiveType()) ? get(current) : convert(type(type), get(current)));
         }
 
         for (int i = 0; i < size; i++) {

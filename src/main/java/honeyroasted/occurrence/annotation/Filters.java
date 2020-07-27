@@ -64,7 +64,7 @@ public @interface Filters {
 
     @Retention(RetentionPolicy.RUNTIME)
     @Filter(id = "cancelled", args = @Arg(delegate = "value"))
-    @interface Cancelled { boolean value() default true; }
+    @interface Cancelled { Tristate value() default Tristate.TRUE; }
 
     @Retention(RetentionPolicy.RUNTIME)
     @Filter(id = "nonnull", args = @Arg(delegate = "value"))

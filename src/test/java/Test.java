@@ -1,12 +1,20 @@
 import honeyroasted.occurrence.annotation.Arg;
-import honeyroasted.occurrence.annotation.Expand;
+import honeyroasted.occurrence.annotation.ExpandArgs;
+import honeyroasted.occurrence.annotation.ExpandFilters;
 import honeyroasted.occurrence.annotation.Filter;
 import honeyroasted.occurrence.annotation.Filters;
 import honeyroasted.occurrence.annotation.Listener;
+import honeyroasted.occurrence.generics.JavaType;
+import honeyroasted.occurrence.generics.ReflectionUtil;
 import honeyroasted.occurrence.manager.EventManager;
 
+import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
 
 public class Test {
 
@@ -18,16 +26,23 @@ public class Test {
     }
 
     @Retention(RetentionPolicy.RUNTIME)
+    @Repeatable(ConcatList.class)
     @Filter(id = "invoke", args = {@Arg(stringVal = "valueOf"), @Arg(name = "source", classVal = String.class)})
     @Filter(id = "invoke", args = {@Arg(stringVal = "concat"), @Arg(delegate = "value")})
     public @interface Concat {
         String value() default "1";
     }
 
+    @Retention(RetentionPolicy.RUNTIME)
+    public @interface ConcatList {
+        @ExpandFilters
+        Concat[] value();
+    }
+
     @Filters.Invoke(source = Repeat.Processor.class, value = "repeat")
     @Retention(RetentionPolicy.RUNTIME)
     public @interface Repeat {
-        @Expand(type = Filters.Invoke.class)
+        @ExpandArgs(type = Filters.Invoke.class)
         int value() default 1;
 
         class Processor {
@@ -42,12 +57,11 @@ public class Test {
     }
 
     @Listener
-    public static void onStr(@Repeat(3) @Concat(" <- pretty") String val) {
+    public static void onStr(@Repeat(3) @Concat(" <- pretty") @Concat("yeet") String val) {
         System.out.println(val);
     }
 
-    @Listener
-    @Filters.Include(String.class)
+    @Listener(event = String.class)
     @Filters.Invoke.Predicate(source = Test.class, value = "allow")
     public static void onStr1(@Concat("2") @Repeat(2) String val) {
         System.out.println(val);

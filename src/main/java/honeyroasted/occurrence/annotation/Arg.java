@@ -8,8 +8,6 @@ public @interface Arg {
 
     String name() default "value";
 
-    boolean forceArray() default false;
-
     String delegate() default Filter.DEFAULT;
 
     String expand() default Filter.DEFAULT;

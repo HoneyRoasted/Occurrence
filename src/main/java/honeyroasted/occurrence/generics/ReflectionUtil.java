@@ -4,6 +4,7 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -74,6 +75,41 @@ public class ReflectionUtil {
         Class<?> owner = method.getDeclaringClass();
         return owner.getName() + "#" + method.getName() +
                 "(" + String.join(", ", Stream.of(method.getParameterTypes()).map(Class::getSimpleName).toArray(String[]::new)) + ")";
+    }
+
+    public static Optional<JavaType> getReverseRespect(List<Class> classes, JavaType parent) {
+        Class<?> common = ReflectionUtil.getCommonParent(classes);
+        if (parent.getGenerics().getParameters().isEmpty()) {
+            return Optional.of(JavaType.of(common));
+        }
+
+        JavaType commonJava = JavaType.of(common).generics(JavaGenerics.ofTypeParameters(common));
+        return getWithRespect(commonJava, parent.getActualType()).map(type -> {
+            JavaGenerics res = new JavaGenerics(new ArrayList<>(commonJava.getGenerics().getParameters()));
+            JavaGenerics parentGen = parent.getGenerics();
+            JavaGenerics commonGen = commonJava.getGenerics();
+            JavaGenerics typeGen = type.getGenerics();
+
+            for (int i = 0; i < commonGen.getParameters().size(); i++) {
+                JavaType gen = commonGen.getActualParameter(i);
+                if (gen instanceof JavaType.Variable) {
+                    int index = -1;
+                    for (int j = 0; j < typeGen.getParameters().size(); j++) {
+                        JavaType test = typeGen.getActualParameter(j);
+                        if (test instanceof JavaType.Variable && gen.getName().equals(test.getName())) {
+                            index = j;
+                            break;
+                        }
+                    }
+
+                    if (index != -1) {
+                        res.getParameters().set(i, parentGen.getActualParameter(index));
+                    }
+                }
+            }
+
+            return commonJava.generics(res);
+        });
     }
 
     public static Optional<JavaType> getWithRespect(JavaType sub, Class parent) {
@@ -220,4 +256,7 @@ public class ReflectionUtil {
         return cls;
     }
 
+    public static Class getCommonParent(Class[] events) {
+        return getCommonParent(Arrays.asList(events));
+    }
 }
