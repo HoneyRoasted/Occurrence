@@ -1,4 +1,4 @@
-package honeyroasted.occurrence.generator;
+package honeyroasted.occurrence.generator.bytecode;
 
 import java.util.HashMap;
 import java.util.Map;

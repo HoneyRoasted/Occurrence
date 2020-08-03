@@ -1,15 +1,12 @@
-package honeyroasted.occurrence.generator;
+package honeyroasted.occurrence.generator.bytecode;
 
 import honeyroasted.pecans.node.Nodes;
-import honeyroasted.pecans.node.instruction.Node;
 import honeyroasted.pecans.node.instruction.TypedNode;
-import honeyroasted.pecans.type.Types;
 import honeyroasted.pecans.type.type.TypeArray;
 import honeyroasted.pecans.type.type.TypeInformal;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;

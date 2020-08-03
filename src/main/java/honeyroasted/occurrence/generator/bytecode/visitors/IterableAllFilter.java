@@ -1,17 +1,16 @@
-package honeyroasted.occurrence.generator.visitors;
+package honeyroasted.occurrence.generator.bytecode.visitors;
 
 import honeyroasted.occurrence.InvalidListenerException;
 import honeyroasted.occurrence.annotation.FilterWrapper;
-import honeyroasted.occurrence.generator.ConstructorParams;
-import honeyroasted.occurrence.generator.FilterVisitor;
-import honeyroasted.occurrence.generator.NameProvider;
+import honeyroasted.occurrence.generator.bytecode.ConstructorParams;
+import honeyroasted.occurrence.generator.bytecode.FilterVisitor;
+import honeyroasted.occurrence.generator.bytecode.NameProvider;
 import honeyroasted.occurrence.generics.JavaGenerics;
 import honeyroasted.occurrence.generics.JavaType;
 import honeyroasted.occurrence.generics.ReflectionUtil;
 import honeyroasted.occurrence.policy.PolicyRegistry;
 import honeyroasted.pecans.node.instruction.Sequence;
 import honeyroasted.pecans.node.instruction.TypedNode;
-import honeyroasted.pecans.node.instruction.util.NoopNode;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;

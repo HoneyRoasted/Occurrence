@@ -1,4 +1,4 @@
-package honeyroasted.occurrence.generator;
+package honeyroasted.occurrence.generator.bytecode;
 
 import honeyroasted.occurrence.annotation.FilterWrapper;
 import honeyroasted.occurrence.generics.JavaType;

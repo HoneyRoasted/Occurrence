@@ -8,6 +8,7 @@ import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -17,7 +18,7 @@ import java.util.Set;
 
 public class FilterWrapperBuilder {
 
-    public static List<FilterWrapper> of(Annotation... annotations) {
+    public static List<FilterWrapper> of(Collection<Annotation> annotations) {
         List<FilterWrapper> wrappers = new ArrayList<>();
         for (Annotation annotation : annotations) {
             wrappers.addAll(of(annotation));

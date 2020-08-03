@@ -1,7 +1,11 @@
 package honeyroasted.occurrence.generics;
 
+import honeyroasted.pecans.node.instruction.operator.Mod;
+
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -12,6 +16,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 public class ReflectionUtil {
@@ -49,6 +54,54 @@ public class ReflectionUtil {
         primitivesByName.put("double", double.class);
         primitivesByName.put("boolean", boolean.class);
         primitivesByName.put("void", void.class);
+    }
+
+    public static List<List<Annotation>> getParameterAnnotations(Method method) {
+        List<List<Annotation>> annotations = new ArrayList<>();
+        for (int i = 0; i < method.getParameterCount(); i++) {
+            annotations.add(new ArrayList<>());
+        }
+
+        walkMethodTree(method, m -> {
+            Annotation[][] paramAnnots = m.getParameterAnnotations();
+            for (int i = 0; i < paramAnnots.length; i++) {
+                Collections.addAll(annotations.get(i), paramAnnots[i]);
+            }
+        });
+        return annotations;
+    }
+
+    public static List<Annotation> getAnnotations(Method method) {
+        List<Annotation> annotations = new ArrayList<>();
+        walkMethodTree(method, m -> Collections.addAll(annotations, m.getAnnotations()));
+        return annotations;
+    }
+
+    public static void walkMethodTree(Method method, Consumer<Method> consumer) {
+        consumer.accept(method);
+        walkMethodTree(method, method.getDeclaringClass(), consumer);
+    }
+
+    private static void walkMethodTree(Method method, Class<?> cls, Consumer<Method> consumer) {
+        if (cls == null) {
+            return;
+        }
+
+        try {
+            Method res = cls.getDeclaredMethod(method.getName(), method.getParameterTypes());
+            int mods = res.getModifiers();
+            if (!Modifier.isFinal(mods) && !Modifier.isStatic(mods)) {
+                consumer.accept(res);
+            }
+        } catch (NoSuchMethodException ignore) {
+            return;
+        }
+
+        walkMethodTree(method, cls.getSuperclass(), consumer);
+        for (Class<?> inter : cls.getInterfaces()) {
+            walkMethodTree(method, inter, consumer);
+        }
+        return;
     }
 
     public static Class box(Class primitive) {

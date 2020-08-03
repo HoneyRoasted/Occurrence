@@ -4,23 +4,18 @@ import honeyroasted.occurrence.annotation.ExpandFilters;
 import honeyroasted.occurrence.annotation.Filter;
 import honeyroasted.occurrence.annotation.Filters;
 import honeyroasted.occurrence.annotation.Listener;
-import honeyroasted.occurrence.generics.JavaType;
-import honeyroasted.occurrence.generics.ReflectionUtil;
 import honeyroasted.occurrence.manager.EventManager;
 
 import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
 
 public class Test {
 
     public static void main(String[] args) {
         EventManager<Object> manager = EventManager.createNew();
 
+        manager.register(Test.class);
         manager.register(Test.class);
         manager.post("Hello world");
     }
@@ -47,7 +42,7 @@ public class Test {
 
         class Processor {
             public static String repeat(Object val, int times) {
-                StringBuilder str = new StringBuilder(String.valueOf(val));
+                StringBuilder str = new StringBuilder();
                 for (int i = 0; i < times; i++) {
                     str.append(val);
                 }
@@ -63,7 +58,7 @@ public class Test {
 
     @Listener(event = String.class)
     @Filters.Invoke.Predicate(source = Test.class, value = "allow")
-    public static void onStr1(@Concat("2") @Repeat(2) String val) {
+    public static void onStr1(@Concat("2, ") @Repeat(2) String val) {
         System.out.println(val);
     }
 

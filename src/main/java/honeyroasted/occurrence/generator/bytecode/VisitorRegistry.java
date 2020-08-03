@@ -1,14 +1,13 @@
-package honeyroasted.occurrence.generator;
+package honeyroasted.occurrence.generator.bytecode;
 
-import honeyroasted.occurrence.generator.visitors.CancelledFilter;
-import honeyroasted.occurrence.generator.visitors.EqualFilter;
-import honeyroasted.occurrence.generator.visitors.IncludeExcludeFilter;
-import honeyroasted.occurrence.generator.visitors.InvokeFilter;
-import honeyroasted.occurrence.generator.visitors.InvokeNewFilter;
-import honeyroasted.occurrence.generator.visitors.IterableAllFilter;
-import honeyroasted.occurrence.generator.visitors.IterableFirstLastFilter;
-import honeyroasted.occurrence.generator.visitors.NonnullFilter;
-import honeyroasted.occurrence.generator.visitors.NoopFilter;
+import honeyroasted.occurrence.generator.bytecode.visitors.CancelledFilter;
+import honeyroasted.occurrence.generator.bytecode.visitors.EqualFilter;
+import honeyroasted.occurrence.generator.bytecode.visitors.IncludeExcludeFilter;
+import honeyroasted.occurrence.generator.bytecode.visitors.InvokeFilter;
+import honeyroasted.occurrence.generator.bytecode.visitors.InvokeNewFilter;
+import honeyroasted.occurrence.generator.bytecode.visitors.IterableAllFilter;
+import honeyroasted.occurrence.generator.bytecode.visitors.IterableFirstLastFilter;
+import honeyroasted.occurrence.generator.bytecode.visitors.NonnullFilter;
 
 import java.util.LinkedHashMap;
 import java.util.Map;

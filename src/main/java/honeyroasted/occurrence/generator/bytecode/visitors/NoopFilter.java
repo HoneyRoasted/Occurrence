@@ -1,9 +1,9 @@
-package honeyroasted.occurrence.generator.visitors;
+package honeyroasted.occurrence.generator.bytecode.visitors;
 
 import honeyroasted.occurrence.annotation.FilterWrapper;
-import honeyroasted.occurrence.generator.ConstructorParams;
-import honeyroasted.occurrence.generator.FilterVisitor;
-import honeyroasted.occurrence.generator.NameProvider;
+import honeyroasted.occurrence.generator.bytecode.ConstructorParams;
+import honeyroasted.occurrence.generator.bytecode.FilterVisitor;
+import honeyroasted.occurrence.generator.bytecode.NameProvider;
 import honeyroasted.occurrence.generics.JavaType;
 import honeyroasted.occurrence.policy.PolicyRegistry;
 import honeyroasted.pecans.node.instruction.Sequence;

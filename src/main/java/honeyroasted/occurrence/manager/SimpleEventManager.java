@@ -3,7 +3,8 @@ package honeyroasted.occurrence.manager;
 import honeyroasted.occurrence.HandleEventException;
 import honeyroasted.occurrence.ListenerWrapper;
 import honeyroasted.occurrence.generator.ListenerWrapperGenerator;
-import honeyroasted.occurrence.generator.VisitorRegistry;
+import honeyroasted.occurrence.generator.bytecode.BytecodeListenerWrapperGenerator;
+import honeyroasted.occurrence.generator.bytecode.VisitorRegistry;
 import honeyroasted.occurrence.policy.PolicyRegistry;
 import honeyroasted.pecans.util.ByteArrayClassLoader;
 
@@ -17,17 +18,15 @@ public class SimpleEventManager<T> implements EventManager<T> {
     private List<ListenerWrapper<T>> wrappers = EventManager.newSortedList();
 
     private PolicyRegistry policyRegistry;
-    private VisitorRegistry visitorRegistry;
-    private ClassLoader loader;
+    private ListenerWrapperGenerator<T> gen;
 
     public SimpleEventManager() {
-        this(PolicyRegistry.GLOBAL, VisitorRegistry.GLOBAL, ClassLoader.getSystemClassLoader());
+        this(PolicyRegistry.GLOBAL, new BytecodeListenerWrapperGenerator<>(ClassLoader.getSystemClassLoader(), VisitorRegistry.GLOBAL));
     }
 
-    public SimpleEventManager(PolicyRegistry policyRegistry, VisitorRegistry visitorRegistry, ClassLoader loader) {
+    public SimpleEventManager(PolicyRegistry policyRegistry, ListenerWrapperGenerator<T> generator) {
         this.policyRegistry = policyRegistry;
-        this.visitorRegistry = visitorRegistry;
-        this.loader = loader;
+        this.gen = generator;
     }
 
     @Override
@@ -65,14 +64,12 @@ public class SimpleEventManager<T> implements EventManager<T> {
 
     @Override
     public void register(Object listener) {
-        this.wrappers.addAll((Collection) ListenerWrapperGenerator.genWrappers(
-                ListenerWrapperGenerator.gen(listener, visitorRegistry, policyRegistry), new ByteArrayClassLoader(this.loader)));
+        this.wrappers.addAll(this.gen.generate(listener, this.policyRegistry));
     }
 
     @Override
     public void register(Class<?> listener) {
-        this.wrappers.addAll((Collection) ListenerWrapperGenerator.genWrappers(
-                ListenerWrapperGenerator.gen(listener, visitorRegistry, policyRegistry), new ByteArrayClassLoader(this.loader)));
+        this.wrappers.addAll(this.gen.generate(listener, this.policyRegistry));
     }
 
     @Override

@@ -3,24 +3,21 @@ package honeyroasted.occurrence.manager;
 import honeyroasted.occurrence.HandleEventException;
 import honeyroasted.occurrence.InvokeMethodException;
 import honeyroasted.occurrence.ListenerWrapper;
-import honeyroasted.occurrence.generator.ConstructorParams;
 import honeyroasted.occurrence.generator.ListenerWrapperGenerator;
-import honeyroasted.occurrence.generator.NameProvider;
-import honeyroasted.occurrence.generator.VisitorRegistry;
+import honeyroasted.occurrence.generator.bytecode.ConstructorParams;
+import honeyroasted.occurrence.generator.bytecode.BytecodeListenerWrapperGenerator;
+import honeyroasted.occurrence.generator.bytecode.NameProvider;
+import honeyroasted.occurrence.generator.bytecode.VisitorRegistry;
 import honeyroasted.occurrence.generics.ReflectionUtil;
 import honeyroasted.occurrence.policy.PolicyRegistry;
 import honeyroasted.pecans.node.ClassNode;
 import honeyroasted.pecans.node.MethodNode;
 import honeyroasted.pecans.node.instruction.Sequence;
-import honeyroasted.pecans.node.instruction.Throw;
-import honeyroasted.pecans.node.instruction.TypedNode;
 import honeyroasted.pecans.type.MethodSignature;
 import honeyroasted.pecans.type.type.TypeParameterized;
 import honeyroasted.pecans.util.ByteArrayClassLoader;
 
-import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -40,16 +37,16 @@ public class BakingEventManager<T> implements EventManager<T> {
     private List<ListenerWrapper<T>> wrappers = EventManager.newSortedList();
 
     private PolicyRegistry policyRegistry;
-    private VisitorRegistry visitorRegistry;
+    private ListenerWrapperGenerator<T> gen;
     private ClassLoader loader;
 
     public BakingEventManager() {
-        this(PolicyRegistry.GLOBAL, VisitorRegistry.GLOBAL, ClassLoader.getSystemClassLoader());
+        this(PolicyRegistry.GLOBAL, new BytecodeListenerWrapperGenerator<>(ClassLoader.getSystemClassLoader(), VisitorRegistry.GLOBAL), ClassLoader.getSystemClassLoader());
     }
 
-    public BakingEventManager(PolicyRegistry policyRegistry, VisitorRegistry visitorRegistry, ClassLoader loader) {
+    public BakingEventManager(PolicyRegistry policyRegistry, ListenerWrapperGenerator<T> generator, ClassLoader loader) {
         this.policyRegistry = policyRegistry;
-        this.visitorRegistry = visitorRegistry;
+        this.gen = generator;
         this.loader = loader;
     }
 
@@ -72,15 +69,13 @@ public class BakingEventManager<T> implements EventManager<T> {
 
     @Override
     public void register(Object listener) {
-        this.wrappers.addAll((Collection) ListenerWrapperGenerator.genWrappers(
-                ListenerWrapperGenerator.gen(listener, visitorRegistry, policyRegistry), new ByteArrayClassLoader(this.loader)));
+        this.wrappers.addAll(this.gen.generate(listener, this.policyRegistry));
         this.rebake();
     }
 
     @Override
     public void register(Class<?> listener) {
-        this.wrappers.addAll((Collection) ListenerWrapperGenerator.genWrappers(
-                ListenerWrapperGenerator.gen(listener, visitorRegistry, policyRegistry), new ByteArrayClassLoader(this.loader)));
+        this.wrappers.addAll(this.gen.generate(listener, this.policyRegistry));
         this.rebake();
     }
 
