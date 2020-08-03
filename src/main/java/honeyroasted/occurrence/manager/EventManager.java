@@ -15,7 +15,7 @@ public interface EventManager<T> extends EventDispatch<T>, ListenerRegistry<T>, 
                 new BytecodeListenerWrapperGenerator<>(source.getClassLoader(), VisitorRegistry.GLOBAL), source.getClassLoader()));
     }
 
-    static <T> EventManager<T> newSimpleManage(Class<?> source) {
+    static <T> EventManager<T> newSimpleManager(Class<?> source) {
         return new SimpleEventManager<>(PolicyRegistry.GLOBAL,
                 new BytecodeListenerWrapperGenerator<>(source.getClassLoader(), VisitorRegistry.GLOBAL));
     }
