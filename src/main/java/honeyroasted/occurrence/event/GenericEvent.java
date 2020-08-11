@@ -1,6 +1,6 @@
 package honeyroasted.occurrence.event;
 
-import honeyroasted.occurrence.generics.JavaType;
+import honeyroasted.javatype.JavaType;
 import honeyroasted.occurrence.policy.GenericPolicy;
 import honeyroasted.occurrence.policy.InvocableGenericPolicy;
 

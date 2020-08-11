@@ -1,14 +1,11 @@
-import honeyroasted.occurrence.annotation.Arg;
-import honeyroasted.occurrence.annotation.ExpandArgs;
-import honeyroasted.occurrence.annotation.ExpandFilters;
-import honeyroasted.occurrence.annotation.Filter;
-import honeyroasted.occurrence.annotation.Filters;
+import honeyroasted.javatype.JavaType;
+import honeyroasted.javatype.Token;
 import honeyroasted.occurrence.annotation.Listener;
+import honeyroasted.occurrence.event.GenericEvent;
 import honeyroasted.occurrence.manager.EventManager;
 
-import java.lang.annotation.Repeatable;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
+import java.util.Arrays;
+import java.util.List;
 
 public class Test {
 
@@ -16,54 +13,34 @@ public class Test {
         EventManager<Object> manager = EventManager.createNew();
 
         manager.register(Test.class);
-        manager.register(Test.class);
-        manager.post("Hello world");
-    }
-
-    @Retention(RetentionPolicy.RUNTIME)
-    @Repeatable(ConcatList.class)
-    @Filter(id = "invoke", args = {@Arg(stringVal = "valueOf"), @Arg(name = "source", classVal = String.class)})
-    @Filter(id = "invoke", args = {@Arg(stringVal = "concat"), @Arg(delegate = "value")})
-    public @interface Concat {
-        String value() default "1";
-    }
-
-    @Retention(RetentionPolicy.RUNTIME)
-    public @interface ConcatList {
-        @ExpandFilters
-        Concat[] value();
-    }
-
-    @Filters.Invoke(source = Repeat.Processor.class, value = "repeat")
-    @Retention(RetentionPolicy.RUNTIME)
-    public @interface Repeat {
-        @ExpandArgs(type = Filters.Invoke.class)
-        int value() default 1;
-
-        class Processor {
-            public static String repeat(Object val, int times) {
-                StringBuilder str = new StringBuilder();
-                for (int i = 0; i < times; i++) {
-                    str.append(val);
-                }
-                return str.toString();
-            }
-        }
+        manager.post(new Ev<>(new Token<Ev<String>>() {}.resolve()));
     }
 
     @Listener
-    public static void onStr(@Repeat(3) @Concat(" <- pretty") @Concat("yeet") String val) {
-        System.out.println(val);
+    public static void onEv(Ev<String> ev) {
+        System.out.println("str");
     }
 
-    @Listener(event = String.class)
-    @Filters.Invoke.Predicate(source = Test.class, value = "allow")
-    public static void onStr1(@Concat("2, ") @Repeat(2) String val) {
-        System.out.println(val);
+    @Listener
+    public static void onEv2(Ev<Integer> ev) {
+        System.out.println("int");
     }
 
-    public static boolean allow(String str) {
-        return true;
+    public static class Ev<T> implements GenericEvent {
+        private JavaType type;
+
+        public Ev(JavaType type) {
+            this.type = type;
+        }
+
+        public List<String> get() {
+            return Arrays.asList("Hello", "world", "!");
+        }
+
+        @Override
+        public JavaType type() {
+            return this.type;
+        }
     }
 
 

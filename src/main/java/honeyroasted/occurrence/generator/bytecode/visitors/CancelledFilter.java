@@ -1,12 +1,12 @@
 package honeyroasted.occurrence.generator.bytecode.visitors;
 
+import honeyroasted.javatype.JavaType;
 import honeyroasted.occurrence.InvalidListenerException;
 import honeyroasted.occurrence.annotation.FilterWrapper;
 import honeyroasted.occurrence.annotation.Tristate;
 import honeyroasted.occurrence.generator.bytecode.ConstructorParams;
 import honeyroasted.occurrence.generator.bytecode.FilterVisitor;
 import honeyroasted.occurrence.generator.bytecode.NameProvider;
-import honeyroasted.occurrence.generics.JavaType;
 import honeyroasted.occurrence.policy.CancellablePolicy;
 import honeyroasted.occurrence.policy.InvocableCancellablePolicy;
 import honeyroasted.occurrence.policy.PolicyRegistry;
@@ -30,7 +30,7 @@ public class CancelledFilter implements FilterVisitor {
     public Result visitTransform(Sequence node, FilterWrapper annotation, String current, JavaType input, ConstructorParams constructorParams, PolicyRegistry policyRegistry, NameProvider nameProvider, Method listenerMethod) {
         Tristate cancelled = annotation.require("value", Tristate.class);
 
-        Optional<CancellablePolicy<?>> policyOptional = policyRegistry.cancellablePolicy(input.getEffectiveType());
+        Optional<CancellablePolicy<?>> policyOptional = policyRegistry.cancellablePolicy(input.getType());
         if (policyOptional.isPresent()) {
             CancellablePolicy<?> policy = policyOptional.get();
             TypedNode getCancelled;
@@ -58,7 +58,7 @@ public class CancelledFilter implements FilterVisitor {
                 node.add(ifBlock(getCancelled, ret()));
             }
         } else if (cancelled == Tristate.TRUE) {
-            throw new InvalidListenerException("No cancellable policy for: " + input.getEffectiveType().getName(), listenerMethod);
+            throw new InvalidListenerException("No cancellable policy for: " + input.getType().getName(), listenerMethod);
         }
 
         return new Result(current, input);

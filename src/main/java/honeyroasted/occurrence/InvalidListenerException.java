@@ -1,6 +1,6 @@
 package honeyroasted.occurrence;
 
-import honeyroasted.occurrence.generics.ReflectionUtil;
+import honeyroasted.occurrence.manager.ReflectionUtil;
 
 import java.lang.reflect.Method;
 

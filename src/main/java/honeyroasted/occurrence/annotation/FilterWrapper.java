@@ -1,7 +1,7 @@
 package honeyroasted.occurrence.annotation;
 
 import honeyroasted.occurrence.InvalidFilterException;
-import honeyroasted.occurrence.generics.ReflectionUtil;
+import honeyroasted.occurrence.manager.ReflectionUtil;
 
 import java.lang.reflect.Array;
 import java.util.List;

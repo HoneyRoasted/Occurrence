@@ -1,7 +1,7 @@
 package honeyroasted.occurrence.generator.bytecode;
 
+import honeyroasted.javatype.JavaType;
 import honeyroasted.occurrence.annotation.FilterWrapper;
-import honeyroasted.occurrence.generics.JavaType;
 import honeyroasted.occurrence.policy.PolicyRegistry;
 import honeyroasted.pecans.node.instruction.Sequence;
 

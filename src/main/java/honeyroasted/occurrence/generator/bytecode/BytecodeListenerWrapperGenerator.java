@@ -1,5 +1,7 @@
 package honeyroasted.occurrence.generator.bytecode;
 
+import honeyroasted.javatype.JavaType;
+import honeyroasted.javatype.JavaTypes;
 import honeyroasted.occurrence.InvalidFilterException;
 import honeyroasted.occurrence.InvalidListenerException;
 import honeyroasted.occurrence.InvokeMethodException;
@@ -7,8 +9,7 @@ import honeyroasted.occurrence.ListenerWrapper;
 import honeyroasted.occurrence.annotation.FilterWrapper;
 import honeyroasted.occurrence.annotation.FilterWrapperBuilder;
 import honeyroasted.occurrence.generator.ListenerWrapperGenerator;
-import honeyroasted.occurrence.generics.JavaType;
-import honeyroasted.occurrence.generics.ReflectionUtil;
+import honeyroasted.occurrence.manager.ReflectionUtil;
 import honeyroasted.occurrence.policy.InvocableGenericPolicy;
 import honeyroasted.occurrence.policy.PolicyRegistry;
 import honeyroasted.pecans.node.ClassNode;
@@ -158,7 +159,7 @@ public class BytecodeListenerWrapperGenerator<T> implements ListenerWrapperGener
                 try {
                     List<FilterWrapper> filters = FilterWrapperBuilder.of(annotations.get(i));
                     if (filters.stream().allMatch(f -> visitorRegistry.get(f.getId()).map(FilterVisitor::filterOnly).orElse(false)) && event == null) {
-                        event = JavaType.of(parameter.getParameterizedType());
+                        event = JavaTypes.of(parameter.getParameterizedType());
                     }
                 } catch (InvalidFilterException e) {
                     throw new InvalidListenerException("Invalid filter on param: " + parameter.getName(), method, e);
@@ -166,11 +167,11 @@ public class BytecodeListenerWrapperGenerator<T> implements ListenerWrapperGener
             }
 
             if (event == null) {
-                event = JavaType.of(ReflectionUtil.getCommonParent(annotation.get("event", Class[].class).orElse(new Class[]{Object.class})));
+                event = JavaTypes.of(JavaTypes.getCommonParent(Arrays.asList(annotation.get("event", Class[].class).orElse(new Class[]{Object.class}))));
             }
 
             ClassNode classNode = classDef(ACC_PUBLIC, classSignature(parameterized("Lhoneyroasted/occurrence/generated/" + listenerClass.getSimpleName().replace('/', '_') + "$" + method.getName().replace('/', '_') + "$" + System.identityHashCode(listener) + "$" + (uniqueSuffix++) + ";"))
-                    .addInterface(type(ListenerWrapper.class).addPart(event.toPecansType())));
+                    .addInterface(type(ListenerWrapper.class).addPart(type(event))));
 
             return new Result(method.getName(), classNode, gen(annotation, classNode, method, listener, listenerClass, event, visitorRegistry, policyRegistry, staticListener));
         }
@@ -186,9 +187,9 @@ public class BytecodeListenerWrapperGenerator<T> implements ListenerWrapperGener
         ConstructorParams params = new ConstructorParams();
         params.add("listener", listener);
 
-        TypeInformal eventType = event.getEffectiveType().isPrimitive() ? type(ReflectionUtil.box(event.getEffectiveType())) : event.toPecansType();
+        TypeInformal eventType = event.getType().isPrimitive() ? type(ReflectionUtil.box(event.getType())) : type(event);
 
-        genNonHandleMethods(node, params, annotation, name, event.getEffectiveType());
+        genNonHandleMethods(node, params, annotation, name, event.getType());
 
         if (!eventType.equals(OBJECT) && !eventType.writeDesc().equals(OBJECT.writeDesc())) {
             node.add(method(ACC_PUBLIC | ACC_BRIDGE, "handle", methodSignature(VOID))
@@ -252,9 +253,9 @@ public class BytecodeListenerWrapperGenerator<T> implements ListenerWrapperGener
             varTypes[i] = type;
         }
 
-        MethodSignature sig = methodSignature(JavaType.of(method.getGenericReturnType()).toPecansType());
+        MethodSignature sig = methodSignature(type(JavaTypes.of(method.getGenericReturnType())));
         for (Type type : method.getGenericParameterTypes()) {
-            sig.addParameter(JavaType.of(type).toPecansType());
+            sig.addParameter(type(JavaTypes.of(type)));
         }
 
         Invoke invoke;
@@ -270,18 +271,18 @@ public class BytecodeListenerWrapperGenerator<T> implements ListenerWrapperGener
 
         for (int i = 0; i < vars.length; i++) {
             String var = vars[i];
-            JavaType paramType = JavaType.of(method.getParameterTypes()[i]);
+            JavaType paramType = JavaTypes.of(method.getParameterTypes()[i]);
             JavaType varType = varTypes[i];
 
-            if (!paramType.getEffectiveType().isAssignableFrom(paramType.getEffectiveType()) || paramType.getEffectiveType().isPrimitive() || varType.getEffectiveType().isPrimitive()) {
-                if ((varType.getEffectiveType().isPrimitive() || paramType.getEffectiveType().isPrimitive()) &&
-                        !(varType.getEffectiveType().isPrimitive() && paramType.getEffectiveType().isAssignableFrom(ReflectionUtil.box(varType.getEffectiveType()))) &&
+            if (!paramType.getType().isAssignableFrom(paramType.getType()) || paramType.getType().isPrimitive() || varType.getType().isPrimitive()) {
+                if ((varType.getType().isPrimitive() || paramType.getType().isPrimitive()) &&
+                        !(varType.getType().isPrimitive() && paramType.getType().isAssignableFrom(ReflectionUtil.box(varType.getType()))) &&
                         !(varType.isNumericPrimitive() && paramType.isNumericPrimitive()) &&
-                        !ReflectionUtil.unbox(varType.getEffectiveType()).equals(ReflectionUtil.unbox(paramType.getEffectiveType()))) {
+                        !ReflectionUtil.unbox(varType.getType()).equals(ReflectionUtil.unbox(paramType.getType()))) {
                     throw new InvalidListenerException(varType + " is not assignable to " + paramType, method);
-                } else if (!paramType.getEffectiveType().equals(seenTests.get(var)) && !paramType.getEffectiveType().isPrimitive() && !varType.getEffectiveType().isPrimitive()) {
-                    seenTests.put(var, paramType.getEffectiveType());
-                    TypedNode ins = instanceOf(get(var), type(ReflectionUtil.box(paramType.getEffectiveType())));
+                } else if (!paramType.getType().equals(seenTests.get(var)) && !paramType.getType().isPrimitive() && !varType.getType().isPrimitive()) {
+                    seenTests.put(var, paramType.getType());
+                    TypedNode ins = instanceOf(get(var), type(ReflectionUtil.box(paramType.getType())));
                     if (condition == null) {
                         condition = ins;
                     } else {
@@ -289,13 +290,13 @@ public class BytecodeListenerWrapperGenerator<T> implements ListenerWrapperGener
                     }
                 }
 
-                invoke.arg(convert(paramType.toPecansType(), get(var)));
+                invoke.arg(convert(type(paramType), get(var)));
             } else {
-                invoke.arg(get(var));
+                invoke.arg(convert(type(paramType), get(var)));
             }
 
             int finalI = i;
-            policyRegistry.genericPolicy(varType.getEffectiveType()).ifPresent(policy -> {
+            policyRegistry.genericPolicy(varType.getType()).ifPresent(policy -> {
                 TypedNode getType;
                 if (policy instanceof InvocableGenericPolicy<?>) {
                     InvocableGenericPolicy<?> invocable = (InvocableGenericPolicy<?>) policy;
@@ -318,12 +319,15 @@ public class BytecodeListenerWrapperGenerator<T> implements ListenerWrapperGener
                 }
 
                 String targetName = nameProvider.provide("param_type");
-                params.add(targetName, JavaType.of(method.getGenericParameterTypes()[finalI]));
-                sequence.add(ifBlock(not(invokeVirtual(params.get(targetName), "isAssignableFrom", methodSignature(BOOLEAN, type(JavaType.class)))
-                        .arg(invokeVirtual(
-                                getType,
-                                "getSuperType", methodSignature(type(JavaType.class), type(Class.class)))
-                                .arg(invokeVirtual(params.get(targetName), "getEffectiveType", methodSignature(type(Class.class)))))), ret()));
+                params.add(targetName, JavaTypes.of(method.getGenericParameterTypes()[finalI]));
+
+                getType = checkcast(type(JavaType.class),
+                        invokeVirtual(invokeVirtual(getType, "resolveToSupertype", methodSignature(type(Optional.class), type(Class.class)))
+                                .arg(invokeVirtual(params.get(targetName), "getType", methodSignature(type(Class.class)))), "orElse", methodSignature(OBJECT, OBJECT))
+                                    .arg(getType));
+
+                sequence.add(ifBlock(not(invokeVirtual(getType, "isAssignableTo", methodSignature(BOOLEAN, type(JavaType.class)))
+                        .arg(params.get(targetName))), ret()));
             });
         }
 

@@ -1,6 +1,6 @@
 package honeyroasted.occurrence.policy;
 
-import honeyroasted.occurrence.generics.JavaType;
+import honeyroasted.javatype.JavaType;
 
 public interface GenericPolicy<T> {
 

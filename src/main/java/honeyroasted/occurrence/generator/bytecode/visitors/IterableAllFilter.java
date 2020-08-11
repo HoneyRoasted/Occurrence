@@ -1,13 +1,14 @@
 package honeyroasted.occurrence.generator.bytecode.visitors;
 
+import honeyroasted.javatype.GenericType;
+import honeyroasted.javatype.JavaType;
+import honeyroasted.javatype.JavaTypes;
 import honeyroasted.occurrence.InvalidListenerException;
 import honeyroasted.occurrence.annotation.FilterWrapper;
 import honeyroasted.occurrence.generator.bytecode.ConstructorParams;
 import honeyroasted.occurrence.generator.bytecode.FilterVisitor;
 import honeyroasted.occurrence.generator.bytecode.NameProvider;
-import honeyroasted.occurrence.generics.JavaGenerics;
-import honeyroasted.occurrence.generics.JavaType;
-import honeyroasted.occurrence.generics.ReflectionUtil;
+import honeyroasted.occurrence.manager.ReflectionUtil;
 import honeyroasted.occurrence.policy.PolicyRegistry;
 import honeyroasted.pecans.node.instruction.Sequence;
 import honeyroasted.pecans.node.instruction.TypedNode;
@@ -34,15 +35,15 @@ public class IterableAllFilter implements FilterVisitor {
     @Override
     public Result visitTransform(Sequence node, FilterWrapper annotation, String current, JavaType input, ConstructorParams constructorParams, PolicyRegistry policyRegistry, NameProvider nameProvider, Method listenerMethod) {
         List<Class> classes = Stream.of(annotation.require("value", Class[].class)).collect(Collectors.toList());
-        Optional<JavaType> iterType = ReflectionUtil.getWithRespect(input, Iterable.class);
-        JavaType result = iterType.map(type -> ReflectionUtil.getWithRespect(type.getGenerics().getActualParameter(0),
-                ReflectionUtil.getCommonParent(classes)).orElse(JavaType.of(Object.class))).orElse(JavaType.of(Object.class));
-        result = JavaType.of(List.class).generics(new JavaGenerics(Arrays.asList(result)));
+        Optional<? extends JavaType> iterType = input.resolveToSupertype(Iterable.class);
+        JavaType result = iterType.<JavaType>map(type -> type.isGeneric() ? ((GenericType) type).getGeneric(0)
+                .resolveToSupertype(JavaTypes.getCommonParent(classes)).orElse(null) : null).orElse(JavaTypes.of(Object.class));
+        result = GenericType.builder(List.class).generics(result.isArray() ? ((GenericType) result).getGenerics() : Arrays.asList(JavaTypes.OBJECT)).build();
 
         String name = nameProvider.provide("iterable_all");
 
         if (input.isPrimitive()) {
-            throw new InvalidListenerException(input.getEffectiveType().getName() + " cannot be assigned to " + Iterable.class.getName(), listenerMethod);
+            throw new InvalidListenerException(input.getType().getName() + " cannot be assigned to " + Iterable.class.getName(), listenerMethod);
         }
 
         node.add(ifBlock(not(instanceOf(get(current), type(Iterable.class))), ret()));

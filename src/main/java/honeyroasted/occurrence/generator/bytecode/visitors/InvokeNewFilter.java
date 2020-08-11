@@ -1,11 +1,12 @@
 package honeyroasted.occurrence.generator.bytecode.visitors;
 
+import honeyroasted.javatype.JavaType;
+import honeyroasted.javatype.JavaTypes;
 import honeyroasted.occurrence.InvalidListenerException;
 import honeyroasted.occurrence.annotation.FilterWrapper;
 import honeyroasted.occurrence.generator.bytecode.ConstructorParams;
 import honeyroasted.occurrence.generator.bytecode.FilterVisitor;
 import honeyroasted.occurrence.generator.bytecode.NameProvider;
-import honeyroasted.occurrence.generics.JavaType;
 import honeyroasted.occurrence.policy.PolicyRegistry;
 import honeyroasted.pecans.node.instruction.Sequence;
 import honeyroasted.pecans.node.instruction.invocation.Invoke;
@@ -38,7 +39,7 @@ public class InvokeNewFilter implements FilterVisitor {
                 for (int i = 0; i < size; i++) {
                     Class<?> parameter = c.getParameterTypes()[i];
                     if (i == 0) {
-                        if (!parameter.isAssignableFrom(input.getEffectiveType())) {
+                        if (!parameter.isAssignableFrom(input.getType())) {
                             found = false;
                         }
                     } else if (!annotation.get(i - 1, parameter).isPresent()) {
@@ -78,7 +79,7 @@ public class InvokeNewFilter implements FilterVisitor {
 
         node.add(def(name, invoke));
 
-        return new Result(name, JavaType.of(src));
+        return new Result(name, JavaTypes.of(src));
     }
 
 }

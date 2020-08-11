@@ -1,18 +1,19 @@
 package honeyroasted.occurrence.generator.bytecode.visitors;
 
+import honeyroasted.javatype.JavaType;
+import honeyroasted.javatype.JavaTypes;
 import honeyroasted.occurrence.InvalidListenerException;
 import honeyroasted.occurrence.annotation.FilterWrapper;
 import honeyroasted.occurrence.generator.bytecode.ConstructorParams;
 import honeyroasted.occurrence.generator.bytecode.FilterVisitor;
 import honeyroasted.occurrence.generator.bytecode.NameProvider;
-import honeyroasted.occurrence.generics.JavaType;
-import honeyroasted.occurrence.generics.ReflectionUtil;
 import honeyroasted.occurrence.policy.PolicyRegistry;
 import honeyroasted.pecans.node.instruction.Sequence;
 import honeyroasted.pecans.node.instruction.TypedNode;
 
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -39,7 +40,12 @@ public class IncludeExcludeFilter implements FilterVisitor {
         JavaType result;
 
         if (include) {
-            result = ReflectionUtil.getReverseRespect(classes, input).orElse(input);
+            Optional<? extends JavaType> t = input.resolveToSubtype(JavaTypes.getCommonParent(classes));
+            if (t.isPresent()) {
+                result = t.get();
+            } else {
+                result = input;
+            }
         } else {
             result = input;
         }
@@ -47,11 +53,11 @@ public class IncludeExcludeFilter implements FilterVisitor {
         TypedNode condition = null;
 
         for (Class cls : classes) {
-            if (!cls.equals(input.getEffectiveType())) {
+            if (!cls.equals(input.getType())) {
                 if ((cls.isPrimitive() && !input.isPrimitive()) ||
                     (!cls.isPrimitive() && input.isPrimitive()) ||
-                        ((!JavaType.of(cls).isNumericPrimitive() || !input.isNumericPrimitive()) && cls.isPrimitive() && input.isPrimitive())) {
-                    throw new InvalidListenerException(input.getEffectiveType().getName() + " cannot be assigned to " + cls.getName(), listenerMethod);
+                        ((!JavaTypes.of(cls).isNumericPrimitive() || !input.isNumericPrimitive()) && cls.isPrimitive() && input.isPrimitive())) {
+                    throw new InvalidListenerException(input.getType().getName() + " cannot be assigned to " + cls.getName(), listenerMethod);
                 } else if (!cls.isPrimitive() && !input.isPrimitive()) {
                     TypedNode inst = instanceOf(get(current), type(cls));
                     if (condition == null) {

@@ -1,12 +1,15 @@
 package honeyroasted.occurrence.generator.bytecode.visitors;
 
+import honeyroasted.javatype.ArrayType;
+import honeyroasted.javatype.GenericType;
+import honeyroasted.javatype.JavaType;
+import honeyroasted.javatype.JavaTypes;
 import honeyroasted.occurrence.InvalidListenerException;
 import honeyroasted.occurrence.annotation.FilterWrapper;
 import honeyroasted.occurrence.generator.bytecode.ConstructorParams;
 import honeyroasted.occurrence.generator.bytecode.FilterVisitor;
 import honeyroasted.occurrence.generator.bytecode.NameProvider;
-import honeyroasted.occurrence.generics.JavaType;
-import honeyroasted.occurrence.generics.ReflectionUtil;
+import honeyroasted.occurrence.manager.ReflectionUtil;
 import honeyroasted.occurrence.policy.PolicyRegistry;
 import honeyroasted.pecans.node.instruction.Sequence;
 import honeyroasted.pecans.node.instruction.TypedNode;
@@ -42,7 +45,7 @@ public class InvokeFilter implements FilterVisitor {
         Method target = null;
 
         Optional<Class> source = annotation.get("source", Class.class).map(c -> c.equals(Void.class) ? null : c);
-        Class<?> targetClass = this.listener ? listenerMethod.getDeclaringClass() : source.orElse(input.getEffectiveType());
+        Class<?> targetClass = this.listener ? listenerMethod.getDeclaringClass() : source.orElse(input.getType());
 
         int size = annotation.arraySize() + (listener || source.isPresent() ? 1 : 0);
 
@@ -56,7 +59,7 @@ public class InvokeFilter implements FilterVisitor {
                             Class<?> parameter = m.getParameterTypes()[i];
                             if (listener || source.isPresent()) {
                                 if (i == 0) {
-                                    if (!parameter.isAssignableFrom(input.getEffectiveType())) {
+                                    if (!parameter.isAssignableFrom(input.getType())) {
                                         found = false;
                                     }
                                 } else if (!annotation.get(i - 1, parameter).isPresent()) {
@@ -100,12 +103,17 @@ public class InvokeFilter implements FilterVisitor {
             } else {
                 src = get(current);
             }
-            invoke = invokeVirtual(src, method, signature, input.getEffectiveType().isInterface());
+
+            if (input.getType().isInterface()) {
+                invoke = invokeInterface(src, method, signature);
+            } else {
+                invoke = invokeVirtual(src, method, signature, input.getType().isInterface());
+            }
         }
 
         if (listener || source.isPresent()) {
             Class<?> type = target.getParameterTypes()[0];
-            invoke.arg(type.isAssignableFrom(input.getEffectiveType()) ? get(current) : convert(type(type), get(current)));
+            invoke.arg(convert(type(type), get(current)));
         }
 
         for (int i = 0; i < size; i++) {
@@ -136,7 +144,15 @@ public class InvokeFilter implements FilterVisitor {
         } else {
             String res = nameProvider.provide();
             node.add(def(res, invoke));
-            return new Result(res, JavaType.of(target.getGenericReturnType()));
+
+            JavaType ret = JavaTypes.of(target.getGenericReturnType());
+            if (input instanceof GenericType) {
+                ret = ret.resolveVariables((GenericType) input, JavaTypes.ofParameterized(input.getType()));
+            } else if (input instanceof ArrayType && ((ArrayType) input).getAbsoluteComponent() instanceof GenericType) {
+                ret = ret.resolveVariables((GenericType) ((ArrayType) input).getAbsoluteComponent(), JavaTypes.ofParameterized(((ArrayType) input).getAbsoluteComponent().getType()));
+            }
+
+            return new Result(res, ret);
         }
     }
 

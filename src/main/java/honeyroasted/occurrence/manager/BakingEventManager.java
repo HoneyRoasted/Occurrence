@@ -8,7 +8,6 @@ import honeyroasted.occurrence.generator.bytecode.ConstructorParams;
 import honeyroasted.occurrence.generator.bytecode.BytecodeListenerWrapperGenerator;
 import honeyroasted.occurrence.generator.bytecode.NameProvider;
 import honeyroasted.occurrence.generator.bytecode.VisitorRegistry;
-import honeyroasted.occurrence.generics.ReflectionUtil;
 import honeyroasted.occurrence.policy.PolicyRegistry;
 import honeyroasted.pecans.node.ClassNode;
 import honeyroasted.pecans.node.MethodNode;

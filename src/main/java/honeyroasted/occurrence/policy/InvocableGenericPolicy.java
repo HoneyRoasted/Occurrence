@@ -1,7 +1,7 @@
 package honeyroasted.occurrence.policy;
 
+import honeyroasted.javatype.JavaType;
 import honeyroasted.occurrence.InvokeMethodException;
-import honeyroasted.occurrence.generics.JavaType;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
