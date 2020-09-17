@@ -79,7 +79,7 @@ public class ReflectionUtil {
 
     public static void walkMethodTree(Method method, Consumer<Method> consumer) {
         consumer.accept(method);
-        walkMethodTree(method, method.getDeclaringClass(), consumer);
+        walkMethodTree(method, method.getDeclaringClass().getSuperclass(), consumer);
     }
 
     private static void walkMethodTree(Method method, Class<?> cls, Consumer<Method> consumer) {
@@ -101,7 +101,6 @@ public class ReflectionUtil {
         for (Class<?> inter : cls.getInterfaces()) {
             walkMethodTree(method, inter, consumer);
         }
-        return;
     }
 
     public static Class box(Class primitive) {
