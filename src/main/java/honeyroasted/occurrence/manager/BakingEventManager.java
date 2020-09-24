@@ -191,12 +191,7 @@ public class BakingEventManager<T> implements EventManager<T> {
         });
         initSeq.add(ret());
 
-        ByteArrayClassLoader byteArrayClassLoader;
-        if (loader instanceof ByteArrayClassLoader) {
-            byteArrayClassLoader = (ByteArrayClassLoader) loader;
-        } else {
-            byteArrayClassLoader = new ByteArrayClassLoader(loader);
-        }
+        ByteArrayClassLoader byteArrayClassLoader = loader instanceof ByteArrayClassLoader ? (ByteArrayClassLoader) loader : new ByteArrayClassLoader(loader);
 
         byte[] cls = baked.toByteArray();
         Class<?> loaded = byteArrayClassLoader.defineClass(baked.getSignature().writeInternalName().replace('/', '.'), cls);

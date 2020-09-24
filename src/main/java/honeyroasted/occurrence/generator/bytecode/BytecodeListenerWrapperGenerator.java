@@ -68,7 +68,7 @@ public class BytecodeListenerWrapperGenerator<T> implements ListenerWrapperGener
                 Collection<Function<Object, ListenerWrapper<?>>> funcs = new ArrayList<>();
 
                 for (Result r : results) {
-                    ByteArrayClassLoader byteArrayClassLoader = new ByteArrayClassLoader(this.loader);
+                    ByteArrayClassLoader byteArrayClassLoader = loader instanceof ByteArrayClassLoader ? (ByteArrayClassLoader) loader : new ByteArrayClassLoader(loader);
                     byte[] bytes = r.getClassNode().toByteArray();
                     Class<?> loaded = byteArrayClassLoader.defineClass(r.getClassNode().getSignature().writeInternalName().replace('/', '.'), bytes);
                     Object[] params = r.params.genParams();
@@ -100,7 +100,7 @@ public class BytecodeListenerWrapperGenerator<T> implements ListenerWrapperGener
 
     public static Collection<ListenerWrapper<?>> genWrappers(Collection<Result> results, ClassLoader loader) {
         return results.stream().sorted().map(r -> {
-            ByteArrayClassLoader byteArrayClassLoader = new ByteArrayClassLoader(loader);
+            ByteArrayClassLoader byteArrayClassLoader = loader instanceof ByteArrayClassLoader ? (ByteArrayClassLoader) loader : new ByteArrayClassLoader(loader);
 
             byte[] cls = r.getClassNode().toByteArray();
             Class<?> loaded = byteArrayClassLoader.defineClass(r.getClassNode().getSignature().writeInternalName().replace('/', '.'), cls);
