@@ -304,11 +304,11 @@ public class BytecodeListenerWrapperGenerator<T> implements ListenerWrapperGener
                         String srcName = nameProvider.provide("generic_source");
                         params.add(srcName, invocable.getSource());
                         getType = invokeVirtual(params.get(srcName), invocable.getMethod().getName(),
-                                methodSignature(invocable.getMethod()))
+                                methodSignature(invocable.getMethod()), invocable.getSource().getClass().isInterface())
                                 .arg(get(var));
 
                     } else {
-                        getType = invokeVirtual(get(var), invocable.getMethod().getName(), methodSignature(invocable.getMethod()));
+                        getType = invokeVirtual(get(var), invocable.getMethod().getName(), methodSignature(invocable.getMethod()), event.getType().isInterface());
                     }
                 } else {
                     String policyName = nameProvider.provide("generic_policy");

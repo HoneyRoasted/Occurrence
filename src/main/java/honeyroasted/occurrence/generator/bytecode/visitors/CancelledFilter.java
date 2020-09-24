@@ -40,10 +40,10 @@ public class CancelledFilter implements FilterVisitor {
                     String srcName = nameProvider.provide("cancellable_source");
                     constructorParams.add(srcName, invocable.getSource());
 
-                    getCancelled = invokeVirtual(constructorParams.get(srcName), invocable.getMethod().getName(), methodSignature(invocable.getMethod()))
+                    getCancelled = invokeVirtual(constructorParams.get(srcName), invocable.getMethod().getName(), methodSignature(invocable.getMethod()), invocable.getSource().getClass().isInterface())
                         .arg(get(current));
                 } else {
-                    getCancelled = invokeVirtual(get(current), invocable.getMethod().getName(), methodSignature(invocable.getMethod()));
+                    getCancelled = invokeVirtual(get(current), invocable.getMethod().getName(), methodSignature(invocable.getMethod()), input.getType().isInterface());
                 }
             } else {
                 String policyName = nameProvider.provide("cancellable_policy");

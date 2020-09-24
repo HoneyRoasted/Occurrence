@@ -107,7 +107,7 @@ public class InvokeFilter implements FilterVisitor {
             if (input.getType().isInterface()) {
                 invoke = invokeInterface(src, method, signature);
             } else {
-                invoke = invokeVirtual(src, method, signature, input.getType().isInterface());
+                invoke = invokeVirtual(src, method, signature, false);
             }
         }
 
